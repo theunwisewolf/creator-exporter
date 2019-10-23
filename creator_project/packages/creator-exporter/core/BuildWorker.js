@@ -161,7 +161,7 @@ class BuildWorker extends WorkerBase {
 			});
 		}
 
-		let state = Editor.remote.Profile.load(Constants.PROFILE_PATH, Constants.PROFILE_DEFAULTS);
+		let state = Editor.remote.Profile.load('profile://project/' + Constants.PACKAGE_NAME + '.json', Constants.PROFILE_DEFAULTS);
 		if (state.data.exportResourceOnly)
 			return;
 
@@ -325,7 +325,7 @@ class BuildWorker extends WorkerBase {
 
 	// dynamically load resources located at assets/resources folder
 	_getDynamicLoadRes(uuidmap, collectedResources) {
-		let state = Editor.remote.Profile.load(Constants.PROFILE_PATH, Constants.PROFILE_DEFAULTS);
+		let state = Editor.remote.Profile.load('profile://project/' + Constants.PACKAGE_NAME + '.json', Constants.PROFILE_DEFAULTS);
 		if (!state.data.exportResourceDynamicallyLoaded)
 			return;
 

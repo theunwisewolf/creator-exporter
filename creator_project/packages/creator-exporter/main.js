@@ -90,7 +90,7 @@ function _build(opt) {
 
     Editor.Ipc.sendToAll('creator-exporter:state-changed', 'start', 0);
 
-    let workerUrl = Constants.PACKAGE_PATH + 'core/BuildWorker';
+    let workerUrl = 'packages://' + Constants.PACKAGE_NAME + '/core/BuildWorker';
     _runWorker(workerUrl, 'creator-exporter:run-build-worker', project);
 }
 
@@ -123,7 +123,7 @@ module.exports = {
         // can not recognize if the scene is modified
         'scene:saved'(event) {
             const Constants = require('./core/Constants');
-            let state = Editor.Profile.load(Constants.PROFILE_PATH, Constants.PROFILE_DEFAULTS);
+            let state = Editor.Profile.load('profile://project/' + Constants.PACKAGE_NAME + '.json', Constants.PROFILE_DEFAULTS);
             if (state.data.autoBuild) {
                 _build({
                     reason: 'scene:saved',

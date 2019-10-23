@@ -7,14 +7,14 @@
 const Fs = require('fs');
 const Path = require('path');
 const Electron = require('electron');
-const Constants = require('../core/Constants');
+const Constants = require(Editor.url('packages://creator-exporter/core/Constants'));
 
-const Project = require(Editor.url(Constants.PROJECT_PATH + 'core/Project.js'));
+const Project = require(Editor.url('packages://' + Constants.PACKAGE_NAME + '/core/Project.js'));
 
-const styleUrl = Editor.url(Constants.PROJECT_PATH + 'panels/style.css');
+const styleUrl = Editor.url('packages://' + Constants.PACKAGE_NAME + '/panels/style.css');
 const style = Fs.readFileSync(styleUrl);
 
-const templateUrl = Editor.url(Constants.PROJECT_PATH + 'panels/setup-project-panel.html');
+const templateUrl = Editor.url('packages://' + Constants.PACKAGE_NAME + '/panels/setup-project-panel.html');
 const template = Fs.readFileSync(templateUrl);
 
 Editor.Panel.extend({
@@ -22,7 +22,7 @@ Editor.Panel.extend({
     template: template,
 
     ready() {
-        let opts = Editor.require(Constants.PROJECT_PATH + 'package.json');       
+        let opts = Editor.require('packages://' + Constants.PACKAGE_NAME + '/package.json');       
         let profileProject = this.profiles.project;
 
         let vm;
