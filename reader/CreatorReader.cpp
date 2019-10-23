@@ -41,8 +41,6 @@
 #include <cmath>
 #include <vector>
 
-#include "../interfaces/PlatformManager.h"
-
 using namespace cocos2d;
 using namespace creator;
 using namespace creator::buffers;
