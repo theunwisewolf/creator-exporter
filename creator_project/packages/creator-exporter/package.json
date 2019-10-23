@@ -1,0 +1,37 @@
+{
+    "name": "creator-exporter",
+    "version": "1.0.96",
+    "description": "Support for exporting Creator Projects to Cocos2d-x",
+    "author": "Ricardo (Original creator), Amaan Mehdi Naqvi",
+    "main": "main.js",
+    "main-menu": {
+        "i18n:MAIN_MENU.project.title/Build for Cocos2d-x/Setup Target Project": {
+            "message": "creator-exporter:setup-target-project"
+        },
+        "i18n:MAIN_MENU.project.title/Build for Cocos2d-x/Build Now": {
+            "message": "creator-exporter:build",
+            "accelerator": "CmdOrCtrl+B"
+        },
+        "i18n:MAIN_MENU.project.title/Build for Cocos2d-x/Remove Temp Files": {
+            "message": "creator-exporter:remove-temp-files"
+        }
+    },
+    "panel": {
+        "main": "panels/setup-project-panel.js",
+        "type": "dockable",
+        "title": "Setup Target Project",
+        "width": 640,
+        "min-width": 320,
+        "height": 480,
+        "min-height": 330 
+    },
+    "profiles": {
+        "project": {
+            "setup": false,
+            "path": "",
+            "autoBuild": false,
+            "exportResourceOnly": false,
+            "exportResourceDynamicallyLoaded": false
+        }
+    }
+}
