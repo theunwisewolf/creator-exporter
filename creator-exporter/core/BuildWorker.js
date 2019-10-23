@@ -200,9 +200,6 @@ class BuildWorker extends WorkerBase {
 				});
 			});
 
-			// Del.sync(codeFilesDest, { force: true });
-			// Fs.copySync(Constants.READER_PATH, codeFilesDest);
-
 			// should exclude binding codes for c++ project
 			if (!isLuaProject) {
 				let bindingCodesPath = Path.join(classes, 'reader/lua-bindings');

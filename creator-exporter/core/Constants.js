@@ -34,7 +34,7 @@ Constants.JSON_PATH = Path.join(Constants.PROJECT_PATH, 'json');
 // path of generated .ccreator files
 Constants.CCREATOR_PATH = Path.join(Constants.PROJECT_PATH, 'ccreator');
 // path of reader folder
-Constants.READER_PATH = Path.join(Constants.PACKAGE_PATH, 'reader');
+Constants.READER_PATH = Path.join(Constants.PACKAGE_PATH, '../creator-reader');
 // the folder that all resources are copied to
 Constants.RESOURCE_FOLDER_NAME = 'creator';
 
