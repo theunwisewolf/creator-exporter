@@ -166,6 +166,9 @@ class BuildWorker extends WorkerBase {
 			return;
 
 		// copy reader
+		// Do not copy reader; 
+		// Import creator-exporter as a submodule instead in your project
+		if (0)
 		{
 			let codeFilesDest = Path.join(classes, 'reader');
 			Utils.walkAsync(Constants.READER_PATH, function (err, sourceFiles) {
