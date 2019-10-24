@@ -173,6 +173,7 @@ Reader::Reader() :
 	_animationManager = new AnimationManager();
 	_collisionManager = new ColliderManager();
 	_widgetManager = new WidgetManager();
+	m_SpriteFrameCache = new SpriteFrameCache();
 
 	_animationManager->autorelease();
 	_collisionManager->autorelease();
@@ -191,6 +192,8 @@ Reader::~Reader()
 	CC_SAFE_RELEASE_NULL(_collisionManager);
 	CC_SAFE_RELEASE_NULL(_animationManager);
 	CC_SAFE_RELEASE_NULL(_widgetManager);
+
+	delete m_SpriteFrameCache;
 }
 
 bool Reader::loadScene(const std::string& filename)
@@ -284,7 +287,7 @@ void Reader::setupScene()
 		}
 	}
 
-	this->setupSpriteFrames();
+	m_SpriteFrameCache->AddSpriteFrames();
 	this->setupCollisionMatrix();
 
 	if (designResolution)
@@ -302,7 +305,7 @@ void Reader::setupPrefab()
 
 	const auto& designResolution = sceneGraph->designResolution();
 
-	this->setupSpriteFrames();
+	m_SpriteFrameCache->AddSpriteFrames();
 
 	if (designResolution)
 	{
@@ -313,131 +316,7 @@ void Reader::setupPrefab()
 
 void Reader::setupSpriteFrames()
 {
-	const void* buffer = _data.getBytes();
-	const auto& sceneGraph = GetNodeGraph(buffer);
-	const auto& spriteFrames = sceneGraph->spriteFrames();
-	auto frameCache = cocos2d::SpriteFrameCache::getInstance();
-
-	if (spriteFrames)
-	{
-		for (const auto& spriteFrame : *spriteFrames)
-		{
-			// Assumption: The atlas has already been loaded into the spriteframe cache
-			if (spriteFrame->atlas())
-			{
-				cocos2d::SpriteFrame* sf = frameCache->getSpriteFrameByName(spriteFrame->name()->str());
-				if (sf)
-				{
-					const auto& centerRect = spriteFrame->centerRect();
-					sf->setCenterRectInPixels(cocos2d::Rect(centerRect->x() * m_SpriteRectScale, centerRect->y() * m_SpriteRectScale, centerRect->w() * m_SpriteRectScale, centerRect->h() * m_SpriteRectScale));
-#ifdef CC_PLATFORM_PC
-					m_SpriteFrames.emplace(spriteFrame->name()->str(), sf);
-#endif
-				}
-				else
-				{
-					CCLOG("Failed to find spriteframe %s in any atlas. Did you forget to load the atlas that contains this spriteframe?", spriteFrame->name()->c_str());
-				}
-			}
-			else
-			{
-				std::string name = spriteFrame->name()->str();
-				cocos2d::SpriteFrame* sf = frameCache->getSpriteFrameByName(name);
-
-				// Spriteframe already loaded
-				if (sf)
-					continue;
-
-				std::string filepath = spriteFrame->texturePath()->str();
-				const auto& rect = spriteFrame->rect();
-				const auto& rotated = spriteFrame->rotated();
-				const auto& offset = spriteFrame->offset();
-				const auto& originalSize = spriteFrame->originalSize();
-
-				// Find the actual file name
-				std::string filename = filepath;
-				if (filename.find("creator/resources/sprites/") != std::string::npos)
-				{
-					filename = filename.replace(filename.begin(), filename.begin() + std::string("creator/resources/sprites/").length(), "");
-				}
-
-				// If the file is inside the "split_qualities" folder, the file path will be prefixed with m_SpriteBasePath
-				std::string search = "split_qualities/";
-				size_t position = filename.find(search);
-				if (position != std::string::npos)
-				{
-					// size_t start_pos = name.find("split_qualities/");
-					// name.replace(start_pos, name.length(), "");
-
-					// Erase this as we do not need it anymore
-					filename.erase(position, search.length());
-					filepath = std::string("sprites/").append(m_SpriteBasePath).append("/").append(filename);
-
-					std::string dirname = filepath.substr(0, filepath.find_last_of("/\\")).append("/");
-					auto it = m_PathReplacements.find(dirname);
-					if (it != std::end(m_PathReplacements))
-					{
-						filepath.replace(0, dirname.length(), it->second);
-					}
-
-					sf = cocos2d::SpriteFrame::create(filepath,
-						cocos2d::Rect(rect->x() * m_SpriteRectScale, rect->y() * m_SpriteRectScale, rect->w() * m_SpriteRectScale, rect->h() * m_SpriteRectScale),
-						rotated,
-						cocos2d::Vec2(offset->x(), offset->y()),
-						cocos2d::Size(originalSize->w() * m_SpriteRectScale, originalSize->h() * m_SpriteRectScale));
-
-					if (sf)
-					{
-						const auto& centerRect = spriteFrame->centerRect();
-						sf->setCenterRectInPixels(cocos2d::Rect(centerRect->x() * m_SpriteRectScale, centerRect->y() * m_SpriteRectScale, centerRect->w() * m_SpriteRectScale, centerRect->h() * m_SpriteRectScale));
-					}
-				}
-				// No split needed
-				else
-				{
-					// Erase no_split (if present)
-					search = "no_split/";
-					position = filename.find(search);
-
-					if (position != std::string::npos)
-					{
-						// size_t start_pos = name.find("no_split/");
-						// name.replace(start_pos, name.length(), "");
-						filename.erase(position, search.length());
-					}
-
-					filepath = std::string("sprites/").append(filename);
-
-					std::string dirname = filepath.substr(0, filepath.find_last_of("/\\")).append("/");
-					auto it = m_PathReplacements.find(dirname);
-					if (it != std::end(m_PathReplacements))
-					{
-						filepath.replace(0, dirname.length(), it->second);
-					}
-
-					sf = cocos2d::SpriteFrame::create(filepath,
-						cocos2d::Rect(rect->x(), rect->y(), rect->w(), rect->h()),
-						rotated,
-						cocos2d::Vec2(offset->x(), offset->y()),
-						cocos2d::Size(originalSize->w(), originalSize->h()));
-
-					if (sf)
-					{
-						const auto& centerRect = spriteFrame->centerRect();
-						sf->setCenterRectInPixels(cocos2d::Rect(centerRect->x(), centerRect->y(), centerRect->w(), centerRect->h()));
-					}
-				}
-
-				if (sf)
-				{
-#ifdef CC_PLATFORM_PC
-					m_SpriteFrames.emplace(name, sf);
-#endif
-					frameCache->addSpriteFrame(sf, name);
-				}
-			}
-		}
-	}
+	
 }
 
 void Reader::setupCollisionMatrix()

@@ -24,11 +24,15 @@
 #pragma once
 
 #include <map>
-#include <spine/spine-cocos2dx.h>
+#include <memory>
 #include <unordered_map>
+
+#include <spine/spine-cocos2dx.h>
 
 #include "cocos2d.h"
 #include "ui/CocosGUI.h"
+
+#include "core/SpriteFrameCache.h"
 
 #include "animation/AnimationClip.h"
 #include "animation/AnimationManager.h"
@@ -53,13 +57,9 @@ class WidgetManager;
 
 class Reader
 {
-	private:
+	friend class SpriteFrameCache;
+private:
 	static Reader* instance;
-
-#ifdef CC_PLATFORM_PC
-	// Used in Desktop-mode only for debugging
-	std::map<std::string, cocos2d::SpriteFrame*> m_SpriteFrames;
-#endif
 
 	// Based on the device quality, this can be changed to scale a sprite up/down if
 	// you are using multiple quality of assets (HD/SD)
@@ -71,7 +71,7 @@ class Reader
 	// If you wish to replace any paths while reading spriteframes, use this!
 	std::unordered_map<std::string, std::string> m_PathReplacements;
 
-	public:
+public:
 	static Reader* i() { return Reader::instance; }
 
 	Reader();
@@ -86,12 +86,6 @@ class Reader
 	inline std::string GetSpriteBasePath() const { return m_SpriteBasePath; }
 	inline void AddPathReplacement(const std::string& src, const std::string& dst) { m_PathReplacements.emplace(src, dst); }
 
-#ifdef CC_PLATFORM_PC
-	inline std::map<std::string, cocos2d::SpriteFrame*> GetSpriteFrames() const
-	{
-		return m_SpriteFrames;
-	}
-#endif
 	/**
      Resets reader
      @return A `Scene*`
@@ -137,7 +131,7 @@ class Reader
 	// Adjusts positions of all the child nodes recursively
 	void adjustPositionRecursively(cocos2d::Node* root) const;
 
-	protected:
+protected:
 	/**
 	 Setup the needed spritesheets and change the design resolution if needed.
 	 Call it before getting the Scene graph
@@ -247,6 +241,7 @@ class Reader
 	AnimationManager* _animationManager;
 	ColliderManager* _collisionManager;
 	WidgetManager* _widgetManager;
+	SpriteFrameCache* m_SpriteFrameCache;
 
 	// creator will make scene at the center of screen when apply design solution strategy, cocos2d-x doesn't do it like this
 	// this value record the diff

@@ -27,7 +27,9 @@
 #include "AnimationClipProperties.h"
 #include "Bezier.h"
 #include "Easing.h"
+
 #include "../CreatorReader.h"
+#include "../core/SpriteFrameCache.h"
 
 namespace
 {
@@ -292,12 +294,7 @@ void AnimateClip::doUpdate(const AnimProperties& animProperties, bool lastFrame)
 	if (target)
 	{
 		auto elapsed = computeElapse();
-		//		if (lastFrame)
-		//		{
-		//
-		//		}
-		//		else
-		//		{
+
 		// update position
 		cocos2d::Vec2 nextPos;
 		if (getNextValue(animProperties.animPosition, elapsed, nextPos))
@@ -417,12 +414,18 @@ void AnimateClip::doUpdate(const AnimProperties& animProperties, bool lastFrame)
 					{
 						pSprite->setTexture(nextPath);
 					}
-
-					pSprite->setContentSize(pSprite->getContentSize() * creator::Reader::i()->GetSpriteRectScale());
+					
+					if (creator::SpriteFrameCache::i()->IsNoSplit(nextPath))
+					{
+						pSprite->setContentSize(pSprite->getContentSize() * creator::Reader::i()->GetSpriteRectScale());
+					}
+					else
+					{
+						pSprite->setContentSize(pSprite->getContentSize());
+					}
 				}
 			}
 		}
-		//		}
 	}
 }
 

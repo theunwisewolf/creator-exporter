@@ -44,7 +44,7 @@ struct AnimationInfo
 
 class AnimationManager : public cocos2d::Node
 {
-	public:
+public:
 	void playAnimationClip(cocos2d::Node* target, const std::string& animationClipName, const std::function<void()>& onEnd = nullptr);
 	void playAnimationClip(cocos2d::Node* target, AnimationClip* clip, const std::function<void()>& onEnd = nullptr);
 	AnimationClip* getAnimationClip(cocos2d::Node* target, const std::string& animationClipName);
@@ -58,7 +58,7 @@ class AnimationManager : public cocos2d::Node
 	// if a "Play On Load" animation is a loop animation, please stop it manually.
 	void stopAnimationClipsRunByPlayOnLoad();
 
-	private:
+private:
 	friend class Reader;
 
 	AnimationManager();
