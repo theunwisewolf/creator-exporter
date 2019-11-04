@@ -14,12 +14,13 @@ AnimationManager::~AnimationManager()
 {
 	for (auto&& animationInfo : _animations)
 	{
-		animationInfo.target->release();
+//		animationInfo.target->release();
 	}
 }
 
 void AnimationManager::addAnimation(const AnimationInfo& animationInfo)
 {
+//	animationInfo.target->retain();
 	_animations.push_back(animationInfo);
 }
 
@@ -104,7 +105,7 @@ void AnimationManager::stopAnimationClip(cocos2d::Node* target, const std::strin
 	if (animateClip)
 	{
 		animateClip->stopAnimate();
-		removeAnimateClip(target, animationClipName);
+//		removeAnimateClip(target, animationClipName);
 	}
 }
 
@@ -124,22 +125,24 @@ void AnimationManager::resumeAnimationClip(cocos2d::Node* target, const std::str
 
 void AnimationManager::runAnimationClip(cocos2d::Node* target, AnimationClip* animationClip, const std::function<void()>& onEnd)
 {
-	auto animate = AnimateClip::createWithAnimationClip(target, animationClip);
-	animate->retain();
+	auto animateClip = AnimateClip::createWithAnimationClip(target, animationClip);
+	animateClip->retain();
 	this->retain();
-	animate->setCallbackForEndevent([=]() {
-		removeAnimateClip(target, animationClip->getName());
-		this->release();
+	animateClip->setCallbackForEndevent([=]() {
+		this->removeAnimateClip(target, animationClip->getName());
 
 		// If there is an on end function supplied, run it
 		if (onEnd)
 		{
 			onEnd();
 		}
+		
+		animateClip->release();
+		this->release();
 	});
 
-	animate->startAnimate();
-	_cachedAnimates.emplace_back(target, animationClip->getName(), animate);
+	animateClip->startAnimate();
+	_cachedAnimates.emplace_back(target, animationClip->getName(), animateClip);
 }
 
 void AnimationManager::removeAnimateClip(cocos2d::Node* target, const std::string& animationClipName)
@@ -150,7 +153,7 @@ void AnimationManager::removeAnimateClip(cocos2d::Node* target, const std::strin
 		if (std::get<0>(e) == target && std::get<1>(e) == animationClipName)
 		{
 			// release AnimateClip
-			std::get<2>(e)->autorelease();
+//			std::get<2>(e)->autorelease();
 
 			_cachedAnimates.erase(iter);
 			break;

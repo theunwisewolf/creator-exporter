@@ -193,7 +193,7 @@ AnimateClip::~AnimateClip()
 	{
 		stopAnimate();
 	}
-
+	
 	CC_SAFE_RELEASE(_clip);
 	CC_SAFE_RELEASE(_rootTarget);
 }
@@ -206,13 +206,13 @@ void AnimateClip::startAnimate()
 
 void AnimateClip::stopAnimate()
 {
-	if (_endCallback)
-		_endCallback();
-
-	this->unscheduleUpdate();
-
 	// release self
 	_running = false;
+	
+	this->unscheduleUpdate();
+	
+	if (_endCallback)
+		_endCallback();
 }
 
 void AnimateClip::pauseAnimate()

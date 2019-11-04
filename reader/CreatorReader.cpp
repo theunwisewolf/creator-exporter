@@ -784,7 +784,7 @@ void Reader::parseNodeAnimation(cocos2d::Node* node, const buffers::Node* nodeBu
 		AnimationInfo animationInfo;
 		animationInfo.playOnLoad = animRef->playOnLoad();
 		animationInfo.target = node;
-		node->retain();
+
 		bool hasDefaultAnimclip = animRef->defaultClip() != nullptr;
 
 		const auto& animationClips = animRef->clips();
