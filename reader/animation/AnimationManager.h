@@ -57,6 +57,7 @@ public:
 
 	// if a "Play On Load" animation is a loop animation, please stop it manually.
 	void stopAnimationClipsRunByPlayOnLoad();
+	void RemoveAllAnimations();
 
 private:
 	friend class Reader;

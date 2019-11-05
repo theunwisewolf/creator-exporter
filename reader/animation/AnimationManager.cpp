@@ -12,10 +12,10 @@ AnimationManager::AnimationManager()
 
 AnimationManager::~AnimationManager()
 {
-	for (auto&& animationInfo : _animations)
-	{
-//		animationInfo.target->release();
-	}
+// 	for (auto&& animationInfo : _animations)
+// 	{
+// //		animationInfo.target->release();
+// 	}
 }
 
 void AnimationManager::addAnimation(const AnimationInfo& animationInfo)
@@ -129,13 +129,13 @@ void AnimationManager::runAnimationClip(cocos2d::Node* target, AnimationClip* an
 	animateClip->retain();
 	this->retain();
 	animateClip->setCallbackForEndevent([=]() {
-		this->removeAnimateClip(target, animationClip->getName());
-
 		// If there is an on end function supplied, run it
 		if (onEnd)
 		{
 			onEnd();
 		}
+
+		this->removeAnimateClip(target, animationClip->getName());
 		
 		animateClip->release();
 		this->release();
@@ -170,6 +170,11 @@ AnimateClip* AnimationManager::getAnimateClip(cocos2d::Node* target, const std::
 	}
 
 	return nullptr;
+}
+
+void AnimationManager::RemoveAllAnimations()
+{
+	_animations.clear();
 }
 
 NS_CCR_END

@@ -340,6 +340,9 @@ void Reader::setupCollisionMatrix()
 
 cocos2d::Scene* Reader::getSceneGraph() const
 {
+	// Remove all old animations
+	_animationManager->RemoveAllAnimations();
+	
 	const void* buffer = _data.getBytes();
 
 	auto sceneGraph = GetNodeGraph(buffer);

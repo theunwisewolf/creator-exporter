@@ -54,7 +54,12 @@ void ScrollView::visit(cocos2d::Renderer* renderer, const cocos2d::Mat4& parentT
 	{
 		float deltaY = (_innerContainer->getPositionY() - m_LastPosition.y);
 		m_LastPosition = _innerContainer->getPosition();
-		m_ContainerBounds.setRect(m_LastPosition.x + m_OriginShift.x, m_LastPosition.y + m_OriginShift.y, m_LastPosition.x + _contentSize.width + m_OriginShift.x, m_LastPosition.y + _contentSize.height + m_OriginShift.y);
+		m_ContainerBounds.setRect(
+			m_LastPosition.x + m_OriginShift.x, 
+			m_LastPosition.y + m_OriginShift.y, 
+			m_LastPosition.x + _contentSize.width + m_OriginShift.x, 
+			m_LastPosition.y + _contentSize.height + m_OriginShift.y
+		);
 
 		if (deltaY > 0)
 		{

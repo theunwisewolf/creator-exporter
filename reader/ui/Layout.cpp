@@ -848,13 +848,17 @@ void Layout::visit(cocos2d::Renderer* renderer, const cocos2d::Mat4& parentTrans
 				// TODO: Draw only visible nodes
 				auto node = _children.at(i);
 
+				// float childScaleX = this->getUsedScaleValue(node->getScaleX());
+				float childScaleY = this->getUsedScaleValue(node->getScaleY());
+				float childHeight = node->getContentSize().height * childScaleY;
+
 				//				if (m_ScrollView->movedUpwards())
 				//				{
 				// Get the top edge of this child
-				float topEdge = (1.0f - node->getAnchorPoint().y) * node->getContentSize().height + node->getPosition().y;
+				float topEdge = (1.0f - node->getAnchorPoint().y) * childHeight + node->getPosition().y;
 				topEdge = (_anchorPoint.y * _contentSize.height) - topEdge;
 
-				float bottomEdge = node->getPosition().y - (node->getAnchorPoint().y) * node->getContentSize().height;
+				float bottomEdge = node->getPosition().y - (node->getAnchorPoint().y) * childHeight;
 				bottomEdge = (_anchorPoint.y * _contentSize.height) - bottomEdge;
 
 				// Check if y is in bounds

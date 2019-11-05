@@ -10,7 +10,7 @@ NS_CCR_BEGIN
 
 class ScrollView : public cocos2d::ui::ScrollView
 {
-	private:
+private:
 	cocos2d::Vec2 m_OriginShift;
 	cocos2d::Vec2 m_LastPosition;
 	cocos2d::Rect m_ContainerBounds;
@@ -18,7 +18,7 @@ class ScrollView : public cocos2d::ui::ScrollView
 	bool m_MovedUpdwards;
 	bool m_MovedDownwards;
 
-	public:
+public:
 	/**
      * Create an empty ScrollView.
      * @return A ScrollView instance.
