@@ -296,7 +296,9 @@ void Button::disableClicksOnScroll()
 			}
 			else if (type == cocos2d::ui::Widget::TouchEventType::MOVED)
 			{
-				m_PositionDiff = std::abs(_touchMovePosition.y - _touchBeganPosition.y);
+				float positionDiffX = std::abs(_touchMovePosition.x - _touchBeganPosition.x);
+				float positionDiffY = std::abs(_touchMovePosition.y - _touchBeganPosition.y);
+				m_PositionDiff = std::max(positionDiffX, positionDiffY);
 			}
 			else if (type == cocos2d::ui::Widget::TouchEventType::ENDED && m_PositionDiff < 20)
 			{
@@ -314,7 +316,9 @@ void Button::disableClicksOnScroll()
 			}
 			else if (type == cocos2d::ui::Widget::TouchEventType::MOVED)
 			{
-				m_PositionDiff = std::abs(_touchMovePosition.y - _touchBeganPosition.y);
+				float positionDiffX = std::abs(_touchMovePosition.x - _touchBeganPosition.x);
+				float positionDiffY = std::abs(_touchMovePosition.y - _touchBeganPosition.y);
+				m_PositionDiff = std::max(positionDiffX, positionDiffY);
 			}
 			else if (type == cocos2d::ui::Widget::TouchEventType::ENDED && m_PositionDiff < 20)
 			{
