@@ -183,6 +183,7 @@ table RichText
     maxWidth:               float;
     lineHeight:             float;
     fontFilename:           string;
+    useSystemFont:          bool;
 }
 
 table Particle
