@@ -54,6 +54,7 @@ class Button;
 class ScrollView;
 class ParticleSystem;
 class WidgetManager;
+class RichText;
 
 class Reader
 {
@@ -175,8 +176,8 @@ protected:
 	cocos2d::Label* createLabel(const buffers::Label* labelBuffer) const;
 	void parseLabel(cocos2d::Label* label, const buffers::Label* labelBuffer) const;
 
-	cocos2d::ui::RichText* createRichText(const buffers::RichText* richTextBuffer) const;
-	void parseRichText(cocos2d::ui::RichText* richText, const buffers::RichText* richTextBuffer) const;
+	creator::RichText* createRichText(const buffers::RichText* richTextBuffer) const;
+	void parseRichText(creator::RichText* richText, const buffers::RichText* richTextBuffer) const;
 
 	cocos2d::ParticleSystemQuad* createParticle(const buffers::Particle* particleBuffer) const;
 	void parseParticle(creator::ParticleSystem* partile, const buffers::Particle* particleBuffer) const;

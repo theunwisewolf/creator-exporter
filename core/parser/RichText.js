@@ -13,10 +13,10 @@ class RichText extends Node {
     parse_properties() {
         super.parse_properties();
 
-        this._properties = {node: this._properties};
+        this._properties = { node: this._properties };
 
         let component = Node.get_node_component_of_type(this._node_data, 'cc.RichText');
- 
+
         // <outline xxx=yyy ...> -> <outline xxx='yyy' ...>
         var text = component._N$string;
         let regex = /(<outline color|width)=(\w*) (color|width)=(\w*)/;
@@ -39,8 +39,10 @@ class RichText extends Node {
 
             // <img src='xx'/> -> <img scr='xxx' width='yyy' height='zzz'/>
             let resource_json_content = Utils.get_sprite_frame_json_by_uuid(resource_uuid);
-            let resource_size = {width: resource_json_content.content.originalSize[0],
-                                 height: resource_json_content.content.originalSize[1]};
+            let resource_size = {
+                width: resource_json_content.content.originalSize[0],
+                height: resource_json_content.content.originalSize[1]
+            };
             text = text.replace(/(<img\s+src=\'\w+\')/, "$1 width='" + resource_size.width + "' height='" + resource_size.height + "'");
         }
 
@@ -50,15 +52,18 @@ class RichText extends Node {
         this._properties.fontSize = component._N$fontSize;
         this._properties.maxWidth = component._N$maxWidth;
         this._properties.lineHeight = component._N$lineHeight;
-        let f = component._N$font;
-        if (f)
-            this._properties.fontFilename = state._assetpath + Utils.get_font_path_by_uuid(f.__uuid__);
-        else
-            this._properties.fontFilename = 'Arial';
+
+        this._properties.useSystemFont = component._isSystemFontUsed;
+        if (component._isSystemFontUsed) {
+            this._properties.fontFilename = component._fontFamily;
+        } else {
+            let font = component._N$font;
+            this._properties.fontFilename = state._assetpath + Utils.get_font_path_by_uuid(font.__uuid__);
+        }
 
         // should floor the content size, or it may cause to create a new line
         let contentSize = this._properties.node.contentSize;
-        let newContentSize = {w:Math.ceil(contentSize.w), h:Math.ceil(contentSize.h)};
+        let newContentSize = { w: Math.ceil(contentSize.w), h: Math.ceil(contentSize.h) };
         this._properties.node.contentSize = newContentSize;
     }
 }

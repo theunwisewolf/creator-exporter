@@ -33,7 +33,7 @@ NS_CCR_BEGIN
 
 class RichtextStringVisitor : public cocos2d::SAXDelegator
 {
-	public:
+public:
 	RichtextStringVisitor();
 
 	virtual void startElement(void* ctx, const char* name, const char** atts) override;
@@ -44,7 +44,7 @@ class RichtextStringVisitor : public cocos2d::SAXDelegator
 	const std::string& getRawString() const;
 	int getMaxFontSize() const;
 
-	private:
+private:
 	std::string convertColorString2Hex(const std::string& colorString) const;
 	std::string convertAttributeName(const std::string& tagName, const std::string& attributeName) const;
 	std::string convertAttributeValue(const std::string& tagName, const std::string& attributeName, const std::string& attributeValue) const;

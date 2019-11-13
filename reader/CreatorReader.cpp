@@ -34,6 +34,7 @@
 #include "ui/RichtextStringVisitor.h"
 #include "ui/ScrollView.h"
 #include "ui/WidgetExport.h"
+#include "ui/RichText.h"
 
 #include "collider/Collider.h"
 
@@ -1372,14 +1373,14 @@ void Reader::parseLabel(cocos2d::Label* label, const buffers::Label* labelBuffer
 	}
 }
 
-cocos2d::ui::RichText* Reader::createRichText(const buffers::RichText* richTextBuffer) const
+creator::RichText* Reader::createRichText(const buffers::RichText* richTextBuffer) const
 {
-	cocos2d::ui::RichText* richText = cocos2d::ui::RichText::create();
+	creator::RichText* richText = creator::RichText::create();
 	parseRichText(richText, richTextBuffer);
 	return richText;
 }
 
-void Reader::parseRichText(cocos2d::ui::RichText* richText, const buffers::RichText* richTextBuffer) const
+void Reader::parseRichText(creator::RichText* richText, const buffers::RichText* richTextBuffer) const
 {
 	const auto& nodeBuffer = richTextBuffer->node();
 	parseNode(richText, nodeBuffer);
@@ -1388,12 +1389,12 @@ void Reader::parseRichText(cocos2d::ui::RichText* richText, const buffers::RichT
 	richText->setFontSize(fontSize);
 	const auto& fontFilename = richTextBuffer->fontFilename();
 	richText->setFontFace(fontFilename->str());
+	richText->setMaxWidth(richTextBuffer->maxWidth());
 
 	const auto& text = richTextBuffer->text();
 	if (text)
 	{
 		RichtextStringVisitor visitor;
-		;
 		SAXParser parser;
 		parser.setDelegator(&visitor);
 		parser.parseIntrusive(const_cast<char*>(text->c_str()), text->Length());

@@ -10,7 +10,7 @@ NS_CCR_BEGIN
 
 class ParticleSystem : public cocos2d::ParticleSystemQuad
 {
-	public:
+public:
 	static ParticleSystem* create(const std::string& filename);
 
 	virtual void setVisible(bool visible) override;
