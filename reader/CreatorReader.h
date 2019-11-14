@@ -43,6 +43,8 @@
 #include "CreatorReader_generated.h"
 #include "collider/ColliderManager.h"
 
+#define CREATOR_ENABLE_SPINE 0
+
 //#include "dragonbones/DragonBonesHeaders.h"
 //#include "dragonbones/cocos2dx/CCDragonBonesHeaders.h"
 
@@ -194,8 +196,10 @@ protected:
 	cocos2d::ui::Button* createButton(const buffers::Button* buttonBuffer) const;
 	void parseButton(creator::Button* button, const buffers::Button* buttonBuffer) const;
 
+#if CREATOR_ENABLE_SPINE
 	spine::SkeletonAnimation* createSpineSkeleton(const buffers::SpineSkeleton* spineBuffer) const;
 	void parseSpineSkeleton(spine::SkeletonAnimation* button, const buffers::SpineSkeleton* spineBuffer) const;
+#endif
 
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID || CC_TARGET_PLATFORM == CC_PLATFORM_IOS)
 	cocos2d::experimental::ui::VideoPlayer* createVideoPlayer(const buffers::VideoPlayer* videoPlayerBuffer) const;

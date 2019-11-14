@@ -530,9 +530,11 @@ cocos2d::Node* Reader::createTree(const buffers::NodeTree* tree) const
 		break;
 	case buffers::AnyNode_CreatorScene:
 		break;
+#if CREATOR_ENABLE_SPINE
 	case buffers::AnyNode_SpineSkeleton:
 		node = createSpineSkeleton(static_cast<const buffers::SpineSkeleton*>(buffer));
 		break;
+#endif
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID || CC_TARGET_PLATFORM == CC_PLATFORM_IOS)
 	case buffers::AnyNode_VideoPlayer:
 		node = createVideoPlayer(static_cast<const buffers::VideoPlayer*>(buffer));
@@ -2075,6 +2077,8 @@ void Reader::parseMotionStreak(cocos2d::MotionStreak* motionStreak, const buffer
  * Misc Nodes
  *
  *=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
+
+#if CREATOR_ENABLE_SPINE
 spine::SkeletonAnimation* Reader::createSpineSkeleton(const buffers::SpineSkeleton* spineBuffer) const
 {
 	const auto& jsonFile = spineBuffer->jsonFile()->str();
@@ -2113,6 +2117,7 @@ void Reader::parseSpineSkeleton(spine::SkeletonAnimation* spine, const buffers::
 	spine->setDebugSlotsEnabled(debugSlots);
 	spine->setDebugBonesEnabled(debugBones);
 }
+#endif
 
 //dragonBones::CCArmatureDisplay* Reader::createArmatureDisplay(const buffers::DragonBones* dragonBonesBuffer) const
 //{
