@@ -75,6 +75,8 @@ private:
 
 	// If you wish to replace any paths while reading spriteframes, use this!
 	std::unordered_map<std::string, std::string> m_PathReplacements;
+	
+	bool m_ParsingScene = false;
 
 public:
 	static Reader* i() { return Reader::instance; }
@@ -101,13 +103,13 @@ public:
      Returns the scenegraph contained in the .ccreator file
      @return A `Scene*`
      */
-	cocos2d::Scene* getSceneGraph() const;
+	cocos2d::Scene* getSceneGraph();
 
 	/**
      Returns the node graph contained in the .ccreator file
      @return A `Node*`
      */
-	cocos2d::Node* getNodeGraph() const;
+	cocos2d::Node* getNodeGraph();
 
 	/**
      Return the AnimationManager. It is added as a child of the Scene to simplify the codes.

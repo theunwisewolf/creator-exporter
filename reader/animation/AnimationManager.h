@@ -39,6 +39,7 @@ struct AnimationInfo
 	AnimationClip* defaultClip;
 	cocos2d::Vector<AnimationClip*> clips;
 	bool playOnLoad;
+	bool attachedToScene; // True if the animation is attached to a scene; False if it is attached to a prefab
 	cocos2d::Node* target; // will retain the target
 };
 
@@ -58,6 +59,8 @@ public:
 	// if a "Play On Load" animation is a loop animation, please stop it manually.
 	void stopAnimationClipsRunByPlayOnLoad();
 	void RemoveAllAnimations();
+	void RemoveSceneAnimations();
+	void RemovePrefabAnimations();
 
 private:
 	friend class Reader;

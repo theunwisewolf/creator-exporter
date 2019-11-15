@@ -189,7 +189,8 @@ Reader::~Reader()
 {
 	// Stop all animations that were run by play on load
 	_animationManager->stopAnimationClipsRunByPlayOnLoad();
-
+	_animationManager->RemoveAllAnimations();
+	
 	CC_SAFE_RELEASE_NULL(_collisionManager);
 	CC_SAFE_RELEASE_NULL(_animationManager);
 	CC_SAFE_RELEASE_NULL(_widgetManager);
@@ -339,10 +340,12 @@ void Reader::setupCollisionMatrix()
 	_collisionManager->setCollistionMatrix(collisionMatrix);
 }
 
-cocos2d::Scene* Reader::getSceneGraph() const
+cocos2d::Scene* Reader::getSceneGraph()
 {
+	m_ParsingScene = true;
+	
 	// Remove all old animations
-	_animationManager->RemoveAllAnimations();
+	_animationManager->RemoveSceneAnimations();
 	
 	const void* buffer = _data.getBytes();
 
@@ -400,8 +403,10 @@ cocos2d::Scene* Reader::getSceneGraph() const
 	return scene;
 }
 
-cocos2d::Node* Reader::getNodeGraph() const
+cocos2d::Node* Reader::getNodeGraph()
 {
+	m_ParsingScene = false;
+	
 	const void* buffer = _data.getBytes();
 
 	auto nodeGraph = GetNodeGraph(buffer);
@@ -890,6 +895,7 @@ void Reader::parseNodeAnimation(cocos2d::Node* node, const buffers::Node* nodeBu
 		}
 
 		// record animation information -> {node: AnimationInfo}
+		animationInfo.attachedToScene = m_ParsingScene;
 		_animationManager->addAnimation(animationInfo);
 	}
 }

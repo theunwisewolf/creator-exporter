@@ -177,4 +177,36 @@ void AnimationManager::RemoveAllAnimations()
 	_animations.clear();
 }
 
+void AnimationManager::RemoveSceneAnimations()
+{
+	decltype(_animations)::iterator it;
+	for (it = std::begin(_animations); it != std::end(_animations); ) 
+	{
+		if (it->attachedToScene)
+		{
+			it = _animations.erase(it);    
+		}
+		else 
+		{
+			++it;
+		}
+	}
+}
+
+void AnimationManager::RemovePrefabAnimations()
+{
+	decltype(_animations)::iterator it;
+	for (it = std::begin(_animations) ; it != std::end(_animations); ) 
+	{
+		if (!it->attachedToScene)
+		{
+			it = _animations.erase(it);    
+		}
+		else 
+		{
+			++it;
+		}
+	}
+}
+
 NS_CCR_END
