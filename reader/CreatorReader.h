@@ -27,7 +27,11 @@
 #include <memory>
 #include <unordered_map>
 
+#define CREATOR_ENABLE_SPINE 0
+
+#if CREATOR_ENABLE_SPINE
 #include <spine/spine-cocos2dx.h>
+#endif
 
 #include "cocos2d.h"
 #include "ui/CocosGUI.h"
@@ -42,8 +46,6 @@
 
 #include "CreatorReader_generated.h"
 #include "collider/ColliderManager.h"
-
-#define CREATOR_ENABLE_SPINE 0
 
 //#include "dragonbones/DragonBonesHeaders.h"
 //#include "dragonbones/cocos2dx/CCDragonBonesHeaders.h"
