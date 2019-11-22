@@ -31,10 +31,10 @@
 #include "ui/Button.h"
 #include "ui/Layout.h"
 #include "ui/PageView.h"
+#include "ui/RichText.h"
 #include "ui/RichtextStringVisitor.h"
 #include "ui/ScrollView.h"
 #include "ui/WidgetExport.h"
-#include "ui/RichText.h"
 
 #include "collider/Collider.h"
 
@@ -190,7 +190,7 @@ Reader::~Reader()
 	// Stop all animations that were run by play on load
 	_animationManager->stopAnimationClipsRunByPlayOnLoad();
 	_animationManager->RemoveAllAnimations();
-	
+
 	CC_SAFE_RELEASE_NULL(_collisionManager);
 	CC_SAFE_RELEASE_NULL(_animationManager);
 	CC_SAFE_RELEASE_NULL(_widgetManager);
@@ -230,6 +230,10 @@ bool Reader::loadScene(const std::string& filename)
 
 bool Reader::loadPrefab(const std::string& filename)
 {
+	// If mutex is locked, that means a thread is reading from a file
+	// Allow it to complete
+	std::lock_guard<std::mutex> lock(m_Mutex);
+
 	// File last read, that means data will still be present
 	if (_lastReadFile == filename)
 	{
@@ -255,6 +259,53 @@ bool Reader::loadPrefab(const std::string& filename)
 	this->setupPrefab();
 
 	return true;
+}
+
+void Reader::loadPrefabAsync(const std::string& filename, const std::function<void(cocos2d::Node*)>& callback)
+{
+	// Allow only one file to be read async
+	std::unique_lock<std::mutex> lock(m_Mutex);
+	m_RunIfFree.wait(lock, [this]() {
+		return m_Ready;
+	});
+
+	// Launch a thread to do the dirty work!
+	std::async(std::launch::async, [this, filename, &callback]() {
+		if (_lastReadFile == filename)
+		{
+			cocos2d::Director::getInstance()->getScheduler()->performFunctionInCocosThread([callback, this]() {
+				callback(this->getNodeGraph());
+			});
+
+			return;
+		}
+
+		_lastReadFile = filename;
+		FileUtils* fileUtils = FileUtils::getInstance();
+
+		const std::string& fullpath = fileUtils->fullPathForFilename(filename);
+		if (fullpath.empty())
+		{
+			callback(nullptr);
+			CCLOG("Reader: Prefab file not found: %s", filename.c_str());
+			return;
+		}
+
+		_data = fileUtils->getDataFromFile(fullpath);
+
+		const void* buffer = _data.getBytes();
+		auto nodeGraph = GetNodeGraph(buffer);
+		_version = nodeGraph->version()->str();
+
+		this->setupPrefab();
+
+		cocos2d::Director::getInstance()->getScheduler()->performFunctionInCocosThread([callback, this]() {
+			callback(this->getNodeGraph());
+		});
+
+		m_Ready = true;
+		m_RunIfFree.notify_one();
+	});
 }
 
 void Reader::setupScene()
@@ -318,7 +369,6 @@ void Reader::setupPrefab()
 
 void Reader::setupSpriteFrames()
 {
-	
 }
 
 void Reader::setupCollisionMatrix()
@@ -343,10 +393,10 @@ void Reader::setupCollisionMatrix()
 cocos2d::Scene* Reader::getSceneGraph()
 {
 	m_ParsingScene = true;
-	
+
 	// Remove all old animations
 	_animationManager->RemoveSceneAnimations();
-	
+
 	const void* buffer = _data.getBytes();
 
 	auto sceneGraph = GetNodeGraph(buffer);
@@ -406,7 +456,7 @@ cocos2d::Scene* Reader::getSceneGraph()
 cocos2d::Node* Reader::getNodeGraph()
 {
 	m_ParsingScene = false;
-	
+
 	const void* buffer = _data.getBytes();
 
 	auto nodeGraph = GetNodeGraph(buffer);
@@ -2190,7 +2240,7 @@ void Reader::Reset()
 	CC_SAFE_RETAIN(_animationManager);
 	CC_SAFE_RETAIN(_collisionManager);
 	CC_SAFE_RETAIN(_widgetManager);
-}	
+}
 
 //
 // Helper free functions

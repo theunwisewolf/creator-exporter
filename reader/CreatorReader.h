@@ -24,6 +24,8 @@
 #pragma once
 
 #include <map>
+#include <mutex>
+#include <thread>
 #include <memory>
 #include <unordered_map>
 
@@ -78,6 +80,10 @@ private:
 	
 	bool m_ParsingScene = false;
 
+	bool m_Ready = true;
+	std::mutex m_Mutex;
+	std::condition_variable m_RunIfFree;
+
 public:
 	static Reader* i() { return Reader::instance; }
 
@@ -86,6 +92,7 @@ public:
 
 	bool loadScene(const std::string& filename);
 	bool loadPrefab(const std::string& filename);
+	void loadPrefabAsync(const std::string& filename, const std::function<void(cocos2d::Node*)>& callback);
 
 	inline void SetSpriteRectScale(float value) { m_SpriteRectScale = value; }
 	inline float GetSpriteRectScale() const { return m_SpriteRectScale; }
