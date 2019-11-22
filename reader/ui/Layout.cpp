@@ -79,6 +79,11 @@ void Layout::addChildNoDirty(cocos2d::Node* node)
 	Node::addChild(node);
 }
 
+void Layout::addChildNoDirty(cocos2d::Node* node, int zOrder)
+{
+	Node::addChild(node, zOrder);
+}
+
 void Layout::addChild(cocos2d::Node* node)
 {
 	Node::addChild(node);
@@ -103,13 +108,38 @@ void Layout::addChild(cocos2d::Node* node)
 	}
 }
 
-void Layout::removeChild(cocos2d::Node* node, bool cleanup)
+void Layout::addChild(cocos2d::Node* node, int zOrder)
 {
-	Node::removeChild(node, cleanup);
+	Node::addChild(node, zOrder);
 
 #ifdef CC_PLATFORM_PC
 	// AABB is an internal node for drawing the bounding box around a node
 	if (node->getName() == "##AABB##")
+	{
+		return;
+	}
+#endif
+
+	m_LayoutDirty = true;
+
+	{
+		if (m_LayoutDirty && this->getChildrenCount() > 0)
+		{
+			this->doLayout();
+			this->adjustPosition();
+			m_LayoutDirty = false;
+		}
+	}
+}
+
+void Layout::removeChild(cocos2d::Node* node, bool cleanup)
+{
+	const auto& name = node->getName();
+	Node::removeChild(node, cleanup);
+
+#ifdef CC_PLATFORM_PC
+	// AABB is an internal node for drawing the bounding box around a node
+	if (name == "##AABB##")
 	{
 		return;
 	}

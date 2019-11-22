@@ -97,7 +97,9 @@ class Layout : public cocos2d::Node
 	virtual void update(float dt) override;
 
 	virtual void addChildNoDirty(cocos2d::Node* node); // Adds a child without marking the layout as dirty; Good when adding multiple elements, so you can mark layout dirty at a later stage and prevent recalculations
+	virtual void addChildNoDirty(cocos2d::Node* node, int zOrder);
 	virtual void addChild(cocos2d::Node* node) override;
+	virtual void addChild(cocos2d::Node* node, int zOrder) override;
 	virtual void removeChild(cocos2d::Node* node, bool cleanup = true) override;
 	virtual void setContentSize(const cocos2d::Size& size) override;
 	virtual void setPosition(const cocos2d::Vec2& position) override;
