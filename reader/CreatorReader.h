@@ -116,7 +116,7 @@ public:
      Returns the node graph contained in the .ccreator file
      @return A `Node*`
      */
-	cocos2d::Node* getNodeGraph();
+	cocos2d::Node* getNodeGraph(cocos2d::Vec2* positionDiff = nullptr);
 
 	/**
      Return the AnimationManager. It is added as a child of the Scene to simplify the codes.
@@ -151,7 +151,7 @@ protected:
 	 Call it before getting the Scene graph
 	 */
 	virtual void setupScene();
-	virtual void setupPrefab();
+	virtual void setupPrefab(const void* buffer = nullptr);
 
 	cocos2d::Node* createTree(const buffers::NodeTree* treeBuffer) const;
 

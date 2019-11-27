@@ -32,7 +32,7 @@ public:
 	SpriteFrameCache();
 	~SpriteFrameCache();
 
-	void AddSpriteFrames();
+	void AddSpriteFrames(const void* buffer = nullptr);
 
     inline std::unordered_map<std::string, cocos2d::SpriteFrame*> GetSplitSpriteFrames() const { return m_SplitSpriteFrames; }
 	inline std::unordered_map<std::string, cocos2d::SpriteFrame*> GetNoSplitSpriteFrames() const { return m_NoSplitSpriteFrames; }

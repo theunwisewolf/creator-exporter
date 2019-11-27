@@ -16,9 +16,9 @@ SpriteFrameCache::~SpriteFrameCache()
 	SpriteFrameCache::instance = nullptr;
 }
 
-void SpriteFrameCache::AddSpriteFrames()
+void SpriteFrameCache::AddSpriteFrames(const void* buffer)
 {
-	const void* buffer = Reader::i()->_data.getBytes();
+	buffer = buffer ? buffer : Reader::i()->_data.getBytes();
 	const auto& sceneGraph = buffers::GetNodeGraph(buffer);
 	const auto& spriteFrames = sceneGraph->spriteFrames();
 	auto frameCache = cocos2d::SpriteFrameCache::getInstance();

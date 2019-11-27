@@ -264,23 +264,21 @@ bool Reader::loadPrefab(const std::string& filename)
 void Reader::loadPrefabAsync(const std::string& filename, const std::function<void(cocos2d::Node*)>& callback)
 {
 	// Allow only one file to be read async
-	std::unique_lock<std::mutex> lock(m_Mutex);
-	m_RunIfFree.wait(lock, [this]() {
-		return m_Ready;
-	});
+	//	std::unique_lock<std::mutex> lock(m_Mutex);
+	//	m_RunIfFree.wait(lock, [this]() {
+	//		return m_Ready;
+	//	});
+
+	// if (_lastReadFile == filename)
+	// {
+	// 	callback(this->getNodeGraph());
+	// 	return;
+	// }
 
 	// Launch a thread to do the dirty work!
 	std::async(std::launch::async, [this, filename, &callback]() {
-		if (_lastReadFile == filename)
-		{
-			cocos2d::Director::getInstance()->getScheduler()->performFunctionInCocosThread([callback, this]() {
-				callback(this->getNodeGraph());
-			});
-
-			return;
-		}
-
-		_lastReadFile = filename;
+		std::lock_guard<std::mutex> lock(m_Mutex);
+		m_ParsingScene = false;
 		FileUtils* fileUtils = FileUtils::getInstance();
 
 		const std::string& fullpath = fileUtils->fullPathForFilename(filename);
@@ -291,20 +289,44 @@ void Reader::loadPrefabAsync(const std::string& filename, const std::function<vo
 			return;
 		}
 
-		_data = fileUtils->getDataFromFile(fullpath);
+		auto buffer = fileUtils->getDataFromFile(fullpath).getBytes();
+		this->setupPrefab(buffer);
+		cocos2d::Director::getInstance()->getScheduler()->performFunctionInCocosThread([callback, buffer, this]() {
+			auto nodeGraph = GetNodeGraph(buffer);
+			auto nodeTree = nodeGraph->root();
 
-		const void* buffer = _data.getBytes();
-		auto nodeGraph = GetNodeGraph(buffer);
-		_version = nodeGraph->version()->str();
+			cocos2d::Vec2 positionDiff;
+			const auto& designResolution = nodeGraph->designResolution();
+			if (designResolution)
+			{
+				const auto& realDesignResolution = Director::getInstance()->getOpenGLView()->getDesignResolutionSize();
+				positionDiff = cocos2d::Vec2((realDesignResolution.width - designResolution->w()) / 2, (realDesignResolution.height - designResolution->h()) / 2);
+			}
 
-		this->setupPrefab();
+			cocos2d::Node* node = this->createTree(nodeTree);
 
-		cocos2d::Director::getInstance()->getScheduler()->performFunctionInCocosThread([callback, this]() {
-			callback(this->getNodeGraph());
+			// Make Node at the center of screen
+			// should not just node's position because it is a Scene, and it will cause issue that click position is not correct(it is a bug of cocos2d-x)
+			// and should not change camera's position
+			for (auto& child : node->getChildren())
+			{
+				if (dynamic_cast<Camera*>(child) == nullptr)
+				{
+					child->setPosition(child->getPosition() + positionDiff);
+				}
+			}
+
+			auto prefab = static_cast<cocos2d::Node*>(node);
+			shiftOriginRecursively(prefab);
+
+			auto actualPrefab = prefab->getChildren().at(0);
+			actualPrefab->removeFromParent();
+
+			callback(actualPrefab);
 		});
 
 		m_Ready = true;
-		m_RunIfFree.notify_one();
+		//		m_RunIfFree.notify_one();
 	});
 }
 
@@ -351,14 +373,13 @@ void Reader::setupScene()
 	}
 }
 
-void Reader::setupPrefab()
+void Reader::setupPrefab(const void* buffer)
 {
-	const void* buffer = _data.getBytes();
+	buffer = buffer ? buffer : _data.getBytes();
 	auto sceneGraph = GetNodeGraph(buffer);
 
 	const auto& designResolution = sceneGraph->designResolution();
-
-	m_SpriteFrameCache->AddSpriteFrames();
+	m_SpriteFrameCache->AddSpriteFrames(buffer);
 
 	if (designResolution)
 	{
@@ -453,8 +474,9 @@ cocos2d::Scene* Reader::getSceneGraph()
 	return scene;
 }
 
-cocos2d::Node* Reader::getNodeGraph()
+cocos2d::Node* Reader::getNodeGraph(cocos2d::Vec2* positionDiff)
 {
+	positionDiff = positionDiff ? positionDiff : &_positionDiffDesignResolution;
 	m_ParsingScene = false;
 
 	const void* buffer = _data.getBytes();
@@ -471,7 +493,7 @@ cocos2d::Node* Reader::getNodeGraph()
 	{
 		if (dynamic_cast<Camera*>(child) == nullptr)
 		{
-			child->setPosition(child->getPosition() + _positionDiffDesignResolution);
+			child->setPosition(child->getPosition() + *positionDiff);
 		}
 	}
 
