@@ -193,7 +193,7 @@ AnimateClip::~AnimateClip()
 	{
 		stopAnimate();
 	}
-	
+
 	CC_SAFE_RELEASE(_clip);
 	CC_SAFE_RELEASE(_rootTarget);
 }
@@ -208,9 +208,9 @@ void AnimateClip::stopAnimate()
 {
 	// release self
 	_running = false;
-	
+
 	this->unscheduleUpdate();
-	
+
 	if (_endCallback)
 		_endCallback();
 }
@@ -335,7 +335,16 @@ void AnimateClip::doUpdate(const AnimProperties& animProperties, bool lastFrame)
 
 		// Opacity
 		if (getNextValue(animProperties.animOpacity, elapsed, nextValue))
+		{
+			auto label = dynamic_cast<cocos2d::Label*>(target);
+			if (label && (label->isShadowEnabled() || label->getLabelEffectType() != cocos2d::LabelEffect::NORMAL))
+			{
+				cocos2d::Color4B color = label->getTextColor();
+				label->setTextColor({color.r, color.g, color.b, static_cast<GLubyte>(nextValue)});
+			}
+			
 			target->setOpacity(nextValue);
+		}
 
 		// anchor x
 		if (getNextValue(animProperties.animAnchorX, elapsed, nextValue))
@@ -414,7 +423,7 @@ void AnimateClip::doUpdate(const AnimProperties& animProperties, bool lastFrame)
 					{
 						pSprite->setTexture(nextPath);
 					}
-					
+
 					if (creator::SpriteFrameCache::i()->IsNoSplit(nextPath))
 					{
 						pSprite->setContentSize(pSprite->getContentSize() * creator::Reader::i()->GetSpriteRectScale());
