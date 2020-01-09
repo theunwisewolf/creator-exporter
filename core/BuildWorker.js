@@ -29,6 +29,7 @@ class BuildWorker extends WorkerBase {
 
 		// clean old json or ccreator files
 		Fs.emptyDirSync(Constants.JSON_PATH);
+		Fs.emptyDirSync(Constants.JSON_ANIMATIONS_PATH);
 		Fs.emptyDirSync(Constants.CCREATOR_PATH);
 
 		Utils.getAssetsInfo(function (uuidmap) {
@@ -130,6 +131,7 @@ class BuildWorker extends WorkerBase {
 
 		// root path of resources
 		let resdst;
+		let animDestination;
 		let classes;
 		let isLuaProject = Utils.isLuaProject(projectRoot);
 		if (isLuaProject) {
@@ -141,6 +143,7 @@ class BuildWorker extends WorkerBase {
 			}
 		} else {
 			resdst = Path.join(projectRoot, 'Resources');
+			animDestination = Path.join(resdst, "animations");
 			classes = Path.join(projectRoot, 'Classes');
 		}
 
@@ -150,6 +153,7 @@ class BuildWorker extends WorkerBase {
 			resdst = Path.join(resdst, Constants.RESOURCE_FOLDER_NAME);
 			// Del.sync(resdst, { force: true });
 			this._copyTo(Constants.CCREATOR_PATH, resdst, ['.ccreator'], true);
+			this._copyTo(Constants.ANIMATIONS_BINARY_PATH, animDestination, ['.anim'], true);
 
 			// copy other resources
 			Object.keys(copyResourceInfos).forEach(function (uuid) {

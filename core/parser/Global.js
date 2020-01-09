@@ -30,7 +30,7 @@ class State {
         this._design_resolution = null;
 
         // clips
-        // key is the uuid, value is the animation
+        // key is the name of the animation, value is the animation
         this._clips = {};
     }
 }

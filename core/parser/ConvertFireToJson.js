@@ -16,7 +16,7 @@ class FireParser {
     constructor() {
         this._state = state;
         this._json_file = null;
-        this._json_output = {version: Constants.VERDION, root: {}};
+        this._json_output = { version: Constants.VERDION, root: {} };
         this._creatorassets = null;
     }
 
@@ -49,16 +49,16 @@ class FireParser {
             let frame = {
                 name: get_sprite_frame_name_by_uuid(sprite_frame_uuid).replace(/(split\_qualities\/)|(no_split\/)/, ""),
                 texturePath: state._assetpath + sprite_frame.texture_path,
-                rect: {x:sprite_frame.trimX, y:sprite_frame.trimY, w:sprite_frame.width, h:sprite_frame.height},
-                offset: {x:sprite_frame.offsetX, y:sprite_frame.offsetY},
+                rect: { x: sprite_frame.trimX, y: sprite_frame.trimY, w: sprite_frame.width, h: sprite_frame.height },
+                offset: { x: sprite_frame.offsetX, y: sprite_frame.offsetY },
                 rotated: sprite_frame.rotated,
-                originalSize: {w:sprite_frame.rawWidth, h:sprite_frame.rawHeight}
+                originalSize: { w: sprite_frame.rawWidth, h: sprite_frame.rawHeight }
             };
 
             // does it have a capInsets?
-            if (sprite_frame.borderTop != 0 || sprite_frame.borderBottom != 0 || 
+            if (sprite_frame.borderTop != 0 || sprite_frame.borderBottom != 0 ||
                 sprite_frame.borderLeft != 0 || sprite_frame.borderRgith != 0) {
-                
+
                 frame.centerRect = {
                     x: sprite_frame.borderLeft,
                     y: sprite_frame.borderTop,
@@ -79,7 +79,7 @@ class FireParser {
         let collisionMatrix = Editor.remote.Profile.load('profile://project/project.json').data['collision-matrix'];
         this._json_output.collisionMatrix = [];
         for (let i = 0, len = collisionMatrix.length; i < len; ++i) {
-            let collisionLine = {value: collisionMatrix[i]};
+            let collisionLine = { value: collisionMatrix[i] };
             this._json_output.collisionMatrix.push(collisionLine);
         }
     }
@@ -109,11 +109,37 @@ class FireParser {
                 this.to_json_setup();
                 let jsonNode = scene_obj.to_json(0, 0);
                 this._json_output.root = jsonNode;
-                let dump = JSON.stringify(this._json_output, null, '\t').replace(/\\\\/g,'/');
+                let dump = JSON.stringify(this._json_output, null, '\t').replace(/\\\\/g, '/');
                 fs.writeSync(this._json_file, dump);
                 fs.close(this._json_file);
             }
         });
+
+        // Parse any animations
+        Object.keys(state._clips).forEach((key) => {
+            let object = state._clips[key];
+            Utils.log("Parsing animation clip:" + object.name);
+            let filepath = path.join(Constants.JSON_ANIMATIONS_PATH, object.name) + '.animation';
+            fire_fs.ensureDirSync(path.dirname(filepath));
+            let file = fs.openSync(filepath, 'w');
+
+            let dump = JSON.stringify(object, null, '\t').replace(/\\\\/g, '/');
+            fs.writeSync(file, dump);
+            fs.close(file);
+
+            // Compile the file to binary
+            let params = ['-b', '-o', Constants.ANIMATIONS_BINARY_PATH, Constants.CREATOR_ANIMATION_FBS, filepath];
+
+            Utils.runcommand(Constants.FLATC, params, function (code) {
+                if (code != 0) {
+                    Utils.failed('Error while compiling ' + filepath);
+                    return;
+                }
+            });
+        });
+
+        // Empty the clips
+        state._clips = {};
     }
 }
 
@@ -124,16 +150,16 @@ function parse_fire(filenames, assetpath, path_to_json_files, uuidmaps) {
     uuidinfos = uuidmaps;
 
     let uuid = {};
-    filenames.forEach(function(filename) {
+    filenames.forEach(function (filename) {
         Utils.info("Parsing scene file: " + filename);
-        
+
         state.reset();
-        
+
         let parser = new FireParser();
 
         parser.run(filename, assetpath, path_to_json_files);
-        
-        for(let key in state._uuid) {
+
+        for (let key in state._uuid) {
             if (state._uuid.hasOwnProperty(key))
                 uuid[key] = state._uuid[key];
         }

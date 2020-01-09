@@ -27,12 +27,23 @@ Constants.TEMP_PATH = Path.join(Constants.PROJECT_PATH, 'temp');
 Constants.INTERNAL_PATH = Path.join(Constants.TEMP_PATH, 'internal');
 // path of `CreatorReader.fbs`
 Constants.CREATOR_READER_FBS = Path.join(Constants.PACKAGE_PATH, 'CreatorReader.fbs');
+
+// path of `CreatorReader.fbs`
+Constants.CREATOR_ANIMATION_FBS = Path.join(Constants.PACKAGE_PATH, 'Animation.fbs');
+
 // path of `flatc`
 Constants.FLATC = Path.join(Constants.PACKAGE_PATH, 'bin/flatc');
 // path of generated .json files
 Constants.JSON_PATH = Path.join(Constants.PROJECT_PATH, 'json');
+
+// path of generated animation .json files
+Constants.JSON_ANIMATIONS_PATH = Path.join(Constants.JSON_PATH, 'animations');
+
 // path of generated .ccreator files
 Constants.CCREATOR_PATH = Path.join(Constants.PROJECT_PATH, 'ccreator');
+// path of generated .anim binary files
+Constants.ANIMATIONS_BINARY_PATH = Path.join(Constants.CCREATOR_PATH, 'animations');
+
 // path of reader folder
 Constants.READER_PATH = Path.join(Constants.PACKAGE_PATH, 'reader');
 // the folder that all resources are copied to

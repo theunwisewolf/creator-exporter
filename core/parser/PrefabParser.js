@@ -53,7 +53,7 @@ class PrefabParser {
             // spriteframes. Most (All) of the spriteframes are already loaded by Scenes
             // If in case, an atlas is present that is only used by prefabs and not by any scene, the game
             // will crash, because it's information will not be present
-            if (sprite_frame.is_texture_packer) 
+            if (sprite_frame.is_texture_packer)
                 continue;
 
             let frame = {
@@ -155,6 +155,33 @@ class PrefabParser {
                 fs.close(this._json_file);
             }
         });
+
+        // Parse any animations
+        Object.keys(state._clips).forEach((key) => {
+            let object = state._clips[key];
+            Utils.log("Parsing animation clip:" + object.name);
+            let filepath = path.join(Constants.JSON_ANIMATIONS_PATH, object.name) + '.animation';
+            fire_fs.ensureDirSync(path.dirname(filepath));
+            let file = fs.openSync(filepath, 'w');
+
+            let dump = JSON.stringify(object, null, '\t').replace(/\\\\/g, '/');
+            fs.writeSync(file, dump);
+            fs.close(file);
+
+            // Compile the file to binary
+			let params = ['-b', '-o', Constants.ANIMATIONS_BINARY_PATH, Constants.CREATOR_ANIMATION_FBS, filepath];
+
+			Utils.runcommand(Constants.FLATC, params, function (code) {
+                if (code != 0)
+                {
+                    Utils.failed('Error while compiling ' + filepath);
+                    return;
+                }
+			});
+        });
+
+        // Empty the clips
+        state._clips = {};
     }
 }
 
@@ -168,7 +195,7 @@ function parse_prefab(filenames, assetpath, path_to_json_files, uuidmaps) {
 
     filenames.forEach(function (filename) {
         Utils.info("Parsing prefab file: " + filename);
-        
+
         state.reset();
 
         let parser = new PrefabParser();
@@ -178,6 +205,7 @@ function parse_prefab(filenames, assetpath, path_to_json_files, uuidmaps) {
                 uuid[key] = state._uuid[key];
         }
     });
+
     return uuid;
 }
 

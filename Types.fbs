@@ -1,0 +1,42 @@
+struct Vec2
+{
+    x:float;
+    y:float;
+}
+
+struct Vec3
+{
+    x:float;
+    y:float;
+    z:float;
+}
+
+struct Size
+{
+    w:float;
+    h:float;
+}
+
+struct Rect
+{
+    x:float;
+    y:float;
+    w:float;
+    h:float;
+}
+
+// ColorRGB instead of RGB to avoid conflicts in windows, wince RGB is defined as a macro
+struct ColorRGB
+{
+    r:ubyte;
+    g:ubyte;
+    b:ubyte;
+}
+
+struct ColorRGBA
+{
+    r:ubyte;
+    g:ubyte;
+    b:ubyte;
+    a:ubyte;
+}

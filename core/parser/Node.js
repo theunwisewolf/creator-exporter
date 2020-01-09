@@ -439,7 +439,7 @@ class Node {
 			component._clips.forEach(function (clip) {
 				let clip_uuid = clip.__uuid__;
 				if (clip_uuid in state._clips) {
-					anim.clips.push(state._clips[clip_uuid]);
+					anim.clips.push(state._clips[clip_uuid].name);
 				}
 				else {
 					let clip_content = JSON.parse(fs.readFileSync(uuidinfos[clip_uuid]));
@@ -491,14 +491,14 @@ class Node {
 					if (curveData.props)
 						animationClip.curveData.push({ props: parseCurveDataProps(curveData.props) });
 
-					anim.clips.push(animationClip);
+					anim.clips.push(animationClip.name);
 					state._clips[clip_uuid] = animationClip;
 				}
 			});
 			// default clip
 			if (component._defaultClip)
 				anim.defaultClip = state._clips[component._defaultClip.__uuid__].name;
-
+			
 			this._properties.anim = anim;
 		}
 	}

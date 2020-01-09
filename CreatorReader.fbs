@@ -1,7 +1,7 @@
 //
 // Main FBS file
 //
-
+include "Types.fbs";
 
 namespace creator.buffers;
 
@@ -57,33 +57,31 @@ union AnyNode {
 //table SceneGraph
 table NodeGraph
 {
-    version:string;
-
-    root:NodeTree;
-
-    designResolution:Size;
-    resolutionFitWidth:bool = false;
-    resolutionFitHeight:bool = false;
+    version:                string;
+    root:                   NodeTree;
+    designResolution:       Size;
+    resolutionFitWidth:     bool = false;
+    resolutionFitHeight:    bool = false;
 
     // Frames needed for the Scene
-    spriteFrames:[SpriteFrame];
+    spriteFrames:           [SpriteFrame];
 
     // flabuffer doesn't support array of array
     // so use a new table to store the values
-    collisionMatrix:[CollisionLine];
+    collisionMatrix:        [CollisionLine];
 }
 
 table CollisionLine
 {
-    value:[bool];
+    value:  [bool];
 }
 
 table NodeTree
 {
     // Flatbuffers doesn't support array of unions
     // so split the tree from node
-    children:[NodeTree];
-    object:AnyNode;
+    children:   [NodeTree];
+    object:     AnyNode;
 
     // no need to declare it, but required everytime that
     // object_type:string;
@@ -91,20 +89,20 @@ table NodeTree
 
 table SpriteFrame
 {
-    name:string;
-    texturePath:string;
-    rect:Rect;
-    offset:Vec2;
-    rotated:bool;
-    originalSize:Size;
-    centerRect:Rect;        // rect in pixels. top-left origin
-    atlas:bool = false;
+    name:           string;
+    texturePath:    string;
+    rect:           Rect;
+    offset:         Vec2;
+    rotated:        bool;
+    originalSize:   Size;
+    centerRect:     Rect;        // rect in pixels. top-left origin
+    atlas:          bool = false;
 }
 
 table CreatorScene
 {
     // fbs file. An fbs can contain another fbs
-    filename:string;
+    filename:   string;
 }
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -114,28 +112,28 @@ table CreatorScene
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 table Node
 {
-    contentSize:Size;
-    enabled:bool = true;
-    name:string;
-    anchorPoint:Vec2;
-    cascadeOpacityEnabled:bool = true;
-    color:ColorRGB;
-    globalZOrder:float = 0;
-    localZOrder:int = 0;
-    opacity:ubyte = 255;
-    opacityModifyRGB:bool = true;
-    position:Vec2;
-    rotationSkewX:float = 0;
-    rotationSkewY:float = 0;
-    scaleX:float = 1;
-    scaleY:float = 1;
-    skewX:float = 0;
-    skewY:float = 0;
-    tag:int = 0;
-    anim:AnimationRef;
-    colliders:[Collider];
-    widget:Widget;
-    groupIndex:int;
+    contentSize:            Size;
+    enabled:                bool = true;
+    name:                   string;
+    anchorPoint:            Vec2;
+    cascadeOpacityEnabled:  bool = true;
+    color:                  ColorRGB;
+    globalZOrder:           float = 0;
+    localZOrder:            int = 0;
+    opacity:                ubyte = 255;
+    opacityModifyRGB:       bool = true;
+    position:               Vec2;
+    rotationSkewX:          float = 0;
+    rotationSkewY:          float = 0;
+    scaleX:                 float = 1;
+    scaleY:                 float = 1;
+    skewX:                  float = 0;
+    skewY:                  float = 0;
+    tag:                    int = 0;
+    anim:                   AnimationRef;
+    colliders:              [Collider];
+    widget:                 Widget;
+    groupIndex:             int;
 }
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -150,7 +148,6 @@ table Sprite
     dstBlend:           int = 771;
     trimEnabled:        bool = false;
     sizeMode:           SpriteSizeMode;
-
     fillType:           SpriteFillType;
     fillCenter:         Vec2;
     fillStart:          float;
@@ -259,108 +256,108 @@ table ScrollView
 
 table Widget
 {
-    isAlignOnce:bool;
-    alignFlags:int;
-    left:float;
-    right:float;
-    top:float;
-    bottom:float;
-    verticalCenter:float;
-    horizontalCenter:float;
-    isAbsLeft:bool;
-    isAbsRight:bool;
-    isAbsTop:bool;
-    isAbsBottom:bool;
-    isAbsHorizontalCenter:bool;
-    isAbsVerticalCenter:bool;
+    isAlignOnce:            bool;
+    alignFlags:             int;
+    left:                   float;
+    right:                  float;
+    top:                    float;
+    bottom:                 float;
+    verticalCenter:         float;
+    horizontalCenter:       float;
+    isAbsLeft:              bool;
+    isAbsRight:             bool;
+    isAbsTop:               bool;
+    isAbsBottom:            bool;
+    isAbsHorizontalCenter:  bool;
+    isAbsVerticalCenter:    bool;
 }
 
 table Layout
 {
-    node: Node;
-    layoutType: LayoutType;
-    resizeMode: ResizeMode;
-    spacingX: float;
-    spacingY: float;
-    affectedByScale: bool;
+    node:                   Node;
+    layoutType:             LayoutType;
+    resizeMode:             ResizeMode;
+    spacingX:               float;
+    spacingY:               float;
+    affectedByScale:        bool;
 
     // For Grid Layout
-    axisDirection: AxisDirection;
-    cellSize: Size;
+    axisDirection:          AxisDirection;
+    cellSize:               Size;
 
-    paddingLeft: float;
-    paddingRight: float;
-    paddingTop: float;
-    paddingBottom: float;
+    paddingLeft:            float;
+    paddingRight:           float;
+    paddingTop:             float;
+    paddingBottom:          float;
 
     // For Vertical Layout
-    verticalDirection: VerticalDirection;
+    verticalDirection:      VerticalDirection;
 
     // For Horizontal Layout
-    horizontalDirection: HorizontalDirection;
+    horizontalDirection:    HorizontalDirection;
 }
 
 table EditBox
 {
-    node:Node;
-    backgroundImage:string;
-    returnType:EditBoxReturnType;
-    inputFlag:EditBoxInputFlag;
-    inputMode:EditBoxInputMode;
-    fontSize:int;
-    fontColor:ColorRGB;
-    placeholder:string;
-    placeholderFontSize:int;
-    placeholderFontColor:ColorRGB;
-    maxLength:int;
-    text:string;
-	horizontalAlignment:HorizontalAlignment;
-    verticalAlignment:VerticalAlignment;
+    node:                   Node;
+    backgroundImage:        string;
+    returnType:             EditBoxReturnType;
+    inputFlag:              EditBoxInputFlag;
+    inputMode:              EditBoxInputMode;
+    fontSize:               int;
+    fontColor:              ColorRGB;
+    placeholder:            string;
+    placeholderFontSize:    int;
+    placeholderFontColor:   ColorRGB;
+    maxLength:              int;
+    text:                   string;
+	horizontalAlignment:    HorizontalAlignment;
+    verticalAlignment:      VerticalAlignment;
 }
 
 table VideoPlayer
 {
-    node:Node;
-    isLocal:bool;
-    url:string;
-    fullScreen:bool;
-    keepAspect:bool;
+    node:               Node;
+    isLocal:            bool;
+    url:                string;
+    fullScreen:         bool;
+    keepAspect:         bool;
 }
 
 table WebView
 {
-    node:Node;
-    url:string;
+    node:           Node;
+    url:            string;
 }
 
 table Slider
 {
-    node:Node;
-    percent:int;
-    barTexturePath:string;
-    barSize:Size;                                // size of bar sprite
-    normalTexturePath:string;
-    pressedTexturePath:string;
+    node:               Node;
+    percent:            int;
+    barTexturePath:     string;
+    barSize:            Size;   // size of bar sprite
+    normalTexturePath:  string;
+    pressedTexturePath: string;
     disabledTexturePath:string;
-    ballSize:Size;                              // size of ball, used to scale normal/pressed/disabled sprite 
+    ballSize:           Size;   // size of ball, used to scale normal/pressed/disabled sprite 
 }
 
 table Toggle
 {
-    node:Node;
-    interactable:bool;
-    enableAutoGrayEffect:bool;
-    isChecked:bool;
-    backgroundSpritePath:string;
-    checkMarkSpritePath:string;
-    zoomScale:float;
+    node:                   Node;
+    interactable:           bool;
+    enableAutoGrayEffect:   bool;
+    isChecked:              bool;
+    backgroundSpritePath:   string;
+    checkMarkSpritePath:    string;
+    zoomScale:              float;
 }
 
 table ToggleGroup
 {
-    node:Node;
-    allowSwitchOff:bool;
-    toggles:[Toggle];
+    node:                   Node;
+    allowSwitchOff:         bool;
+    toggles:                [Toggle];
 }
 
 table Mask
@@ -441,9 +438,9 @@ table SpineSkeleton
 // an existing animation
 table AnimationRef
 {
-    clips:[AnimationClip];
-    playOnLoad:bool;
-    defaultClip:string;
+    clips:          [string];
+    playOnLoad:     bool;
+    defaultClip:    string;
 }
 
 table Collider
@@ -467,234 +464,9 @@ table DragonBones
     playTimes:int;
 }
 
-
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-//
-// Animation
-//
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-
-// refer to: https://github.com/cocos-creator/engine/blob/master/cocos2d/animation/types.js#L28
-enum AnimWrapMode:byte {Default = 0, Normal = 1, Loop = 2, PingPong = 22, Reverse = 36, LoopReverse = 38, PingPongReverse = 54}
-
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-// Animation Clip
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-table AnimationClip
-{
-    // clip name
-    name:string;
-    duration:float;
-    sample:float;
-    speed:float;
-    wrapMode:AnimWrapMode;
-    curveData:[AnimCurveData];
-}
-
-table AnimCurveData
-{
-    path:string;
-    props:AnimProps;
-}
-
-table AnimProps
-{
-    rotation:[AnimPropRotation];
-    position:[AnimPropPosition];
-    positionX:[AnimPropPositionX];
-    positionY:[AnimPropPositionY];
-    anchorX:[AnimPropAnchorX];
-    anchorY:[AnimPropAnchorY];
-    color:[AnimPropColor];
-    opacity:[AnimPropOpacity];
-    width:[AnimPropWidth];
-    height:[AnimPropHeight];
-    scaleX:[AnimPropScaleX];
-    scaleY:[AnimPropScaleY];
-    skewX:[AnimPropSkewX];
-    skewY:[AnimPropSkewY];
-    active:[AnimPropActive];
-    spriteFrame:[AnimPropSpriteFrame];
-}
-
-table AnimEvents
-{
-    // FIXME: What goes here?
-}
-
-table AnimPropActive
-{
-    frame:float;
-    value:bool;
-    curveType:string;
-    curveData:[float];
-}
-
-table AnimPropRotation
-{
-    frame:float;
-    value:float;
-    curveType:string;
-    curveData:[float];
-}
-
-table AnimPropPosition
-{
-    frame:float;
-    value:Vec2;
-    curveType:string;
-    curveData:[float];
-}
-
-table AnimPropPositionX
-{
-    frame:float;
-    value:float;
-    curveType:string;
-    curveData:[float];
-}
-
-table AnimPropPositionY
-{
-    frame:float;
-    value:float;
-    curveType:string;
-    curveData:[float];
-}
-
-table AnimPropScaleX
-{
-    frame:float;
-    value:float;
-    curveType:string;
-    curveData:[float];
-}
-
-table AnimPropScaleY
-{
-    frame:float;
-    value:float;
-    curveType:string;
-    curveData:[float];
-}
-
-table AnimPropWidth
-{
-    frame:float;
-    value:float;
-    curveType:string;
-    curveData:[float];
-}
-
-table AnimPropHeight
-{
-    frame:float;
-    value:float;
-    curveType:string;
-    curveData:[float];
-}
-
-table AnimPropColor
-{
-    frame:float;
-    value:ColorRGBA;
-    curveType:string;
-    curveData:[float];
-}
-
-table AnimPropOpacity
-{
-    frame:float;
-    value:float;
-    curveType:string;
-    curveData:[float];
-}
-
-table AnimPropAnchorX
-{
-    frame:float;
-    value:float;
-    curveType:string;
-    curveData:[float];
-}
-
-table AnimPropAnchorY
-{
-    frame:float;
-    value:float;
-    curveType:string;
-    curveData:[float];
-}
-
-table AnimPropSkewX
-{
-    frame:float;
-    value:float;
-    curveType:string;
-    curveData:[float];
-}
-
-table AnimPropSkewY
-{
-    frame:float;
-    value:float;
-    curveType:string;
-    curveData:[float];
-}
-
-table AnimPropSpriteFrame
-{
-    frame:float;
-    value:string;
-    curveType:string;
-    curveData:[float];
-}
-
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // Structs
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-struct Vec2
-{
-    x:float;
-    y:float;
-}
-
-struct Vec3
-{
-    x:float;
-    y:float;
-    z:float;
-}
-
-struct Size
-{
-    w:float;
-    h:float;
-}
-
-struct Rect
-{
-    x:float;
-    y:float;
-    w:float;
-    h:float;
-}
-
-// ColorRGB instead of RGB to avoid conflicts in windows, wince RGB is defined as a macro
-struct ColorRGB
-{
-    r:ubyte;
-    g:ubyte;
-    b:ubyte;
-}
-
-struct ColorRGBA
-{
-    r:ubyte;
-    g:ubyte;
-    b:ubyte;
-    a:ubyte;
-}
 
 table LabelOutline
 {
