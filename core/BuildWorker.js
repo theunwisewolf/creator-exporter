@@ -109,10 +109,10 @@ class BuildWorker extends WorkerBase {
 
 			Utils.runcommand(Constants.FLATC, params, function (code) {
 				if (code != 0)
-				Utils.failed('Error while compiling ' + file);
+					Utils.failed('Error while compiling ' + file);
 
 				++i;
-				
+
 				if (i === (jsonFiles.length + jsonPrefabFiles.length)) {
 					Utils.info("A total of " + i + " files were processed.");
 					cb();
@@ -153,7 +153,10 @@ class BuildWorker extends WorkerBase {
 			resdst = Path.join(resdst, Constants.RESOURCE_FOLDER_NAME);
 			// Del.sync(resdst, { force: true });
 			this._copyTo(Constants.CCREATOR_PATH, resdst, ['.ccreator'], true);
-			this._copyTo(Constants.ANIMATIONS_BINARY_PATH, animDestination, ['.anim'], true);
+
+			if (Fs.existsSync(Constants.ANIMATIONS_BINARY_PATH)) {
+				this._copyTo(Constants.ANIMATIONS_BINARY_PATH, animDestination, ['.anim'], true);
+			}
 
 			// copy other resources
 			Object.keys(copyResourceInfos).forEach(function (uuid) {
@@ -172,8 +175,7 @@ class BuildWorker extends WorkerBase {
 		// copy reader
 		// Do not copy reader; 
 		// Import creator-exporter as a submodule instead in your project
-		if (0)
-		{
+		if (0) {
 			let codeFilesDest = Path.join(classes, 'reader');
 			Utils.walkAsync(Constants.READER_PATH, function (err, sourceFiles) {
 				let changedFiles = [];
@@ -228,7 +230,7 @@ class BuildWorker extends WorkerBase {
 			filenames.forEach((filename) => {
 				let stat = fs.statSync(filename);
 				let mtime = stat.mtime.getTime();
-			
+
 				if (json[filename] != null) {
 					// File was modified, add to changed files
 					if (json[filename] < mtime) {
