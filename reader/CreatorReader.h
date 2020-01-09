@@ -47,6 +47,7 @@
 #include "helpers/Helper.h"
 
 #include "CreatorReader_generated.h"
+#include "Animation_generated.h"
 #include "collider/ColliderManager.h"
 
 //#include "dragonbones/DragonBonesHeaders.h"

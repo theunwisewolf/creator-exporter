@@ -24,6 +24,10 @@
 
 #include "CreatorReader.h"
 
+#include <algorithm>
+#include <cmath>
+#include <vector>
+
 #include "animation/AnimateClip.h"
 #include "animation/AnimationClip.h"
 
@@ -37,10 +41,6 @@
 #include "ui/WidgetExport.h"
 
 #include "collider/Collider.h"
-
-#include <algorithm>
-#include <cmath>
-#include <vector>
 
 using namespace cocos2d;
 using namespace creator;
@@ -437,7 +437,7 @@ cocos2d::Scene* Reader::getSceneGraph()
 		}
 	}
 
-	_animationManager->playOnLoad();
+	// _animationManager->playOnLoad();
 
 	node->addChild(_collisionManager);
 	node->addChild(_animationManager);
@@ -866,14 +866,24 @@ void Reader::parseNodeAnimation(cocos2d::Node* node, const buffers::Node* nodeBu
 	{
 		AnimationInfo animationInfo;
 		animationInfo.playOnLoad = animRef->playOnLoad();
-		animationInfo.target = node;
 
 		bool hasDefaultAnimclip = animRef->defaultClip() != nullptr;
-
 		const auto& animationClips = animRef->clips();
 
-		for (const auto& fbAnimationClip : *animationClips)
+		cocos2d::FileUtils* fileUtils = cocos2d::FileUtils::getInstance();
+		for (const auto& fbAnimationClipName : *animationClips)
 		{
+			// Load the animation from the file
+			std::string fullpath = fileUtils->fullPathForFilename(std::string("animations/").append(fbAnimationClipName->str()).append(".anim"));
+			if (fullpath.empty())
+			{
+				CCLOG("[CreatorReader.parseNodeAnimation]: %s.anim not found", fbAnimationClipName->c_str());
+				return;
+			}
+
+			cocos2d::Data data = fileUtils->getDataFromFile(fullpath);
+			auto fbAnimationClip = creator::buffers::GetAnimationClip(data.getBytes());
+
 			auto animClip = AnimationClip::create();
 
 			const auto& duration = fbAnimationClip->duration();
@@ -891,14 +901,13 @@ void Reader::parseNodeAnimation(cocos2d::Node* node, const buffers::Node* nodeBu
 			const auto& wrapMode = fbAnimationClip->wrapMode();
 			animClip->setWrapMode(static_cast<AnimationClip::WrapMode>(wrapMode));
 
-			// is it defalut animation clip?
+			// Is it defalut animation clip?
 			if (hasDefaultAnimclip && name->str() == animRef->defaultClip()->str())
 				animationInfo.defaultClip = animClip;
 
 			const auto& curveDatas = fbAnimationClip->curveData();
 			for (const auto& fbCurveData : *curveDatas)
 			{
-
 				if (fbCurveData)
 				{
 					const AnimProps* fbAnimProps = fbCurveData->props();

@@ -201,7 +201,7 @@ AnimateClip::~AnimateClip()
 void AnimateClip::startAnimate()
 {
 	_running = true;
-	scheduleUpdate();
+	this->scheduleUpdate();
 }
 
 void AnimateClip::stopAnimate()
