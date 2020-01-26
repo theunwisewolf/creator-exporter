@@ -77,6 +77,10 @@ void AnimationManager::playAnimationClip(cocos2d::Node* target, const std::strin
 	{
 		this->runAnimationClip(target, clip, onEnd);
 	}
+	else
+	{
+		CCLOG("Animation clip not found %s", animationClipName.c_str());
+	}
 }
 
 void AnimationManager::playAnimationClip(cocos2d::Node* target, AnimationClip* clip, const std::function<void()>& onEnd)
