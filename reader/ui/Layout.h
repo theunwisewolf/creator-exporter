@@ -1,6 +1,8 @@
 #pragma once
 
 #include <cmath>
+#include <functional>
+#include <vector>
 
 #include "../Macros.h"
 #include "cocos2d.h"
@@ -16,31 +18,45 @@ enum class LayoutType
 	Vertical,
 	Grid
 };
+
 enum class ResizeMode
 {
 	None,
 	Container,
 	Children
 };
+
 enum class AxisDirection
 {
 	Horizontal,
 	Vertical
 };
+
 enum class VerticalDirection
 {
 	BottomToTop,
 	TopToBottom
 };
+
 enum class HorizontalDirection
 {
 	LeftToRight,
 	RightToLeft
 };
 
+struct LayoutItem
+{
+	void* Data;
+	int Tag;
+	cocos2d::Vec2 Scale;
+	cocos2d::Vec2 Position;
+	cocos2d::Size ContentSize;
+	cocos2d::Vec2 AnchorPoint;
+};
+
 class Layout : public cocos2d::Node
 {
-	private:
+private:
 	LayoutType m_LayoutType;
 	ResizeMode m_ResizeMode;
 	AxisDirection m_StartAxis;
@@ -64,17 +80,23 @@ class Layout : public cocos2d::Node
 	cocos2d::Vec2 originalPosition;
 
 	// For Recycling the Scrollview
+	bool m_RecycleElements = false;
 	creator::ScrollView* m_ScrollView = nullptr;
 	int m_StartIndex; // Index of the first child being drawn in the recycling scrollview
 	int m_EndIndex;	  // Index of the last child being drawn in the recycling scrollview
+	std::vector<cocos2d::Node*> m_LayoutItemPrefabs;
+	std::vector<LayoutItem> m_LayoutItems;
+	std::function<void(cocos2d::Node*, const LayoutItem&)> m_PrefabUpdateCallBack;
 
-	private:
+private:
 	void doLayout();
 
 	float doHorizontalLayout(float baseWidth, bool rowBreak, const std::function<float(cocos2d::Node*, float, float)>& fnPositionY, bool applyChildren);
+	float doHorizontalLayout(float baseWidth, bool rowBreak, const std::function<float(const LayoutItem&, float, float)>& fnPositionY, bool applyChildren);
 	void doLayoutGridAxisHorizontal(cocos2d::Vec2 layoutAnchor, cocos2d::Size layoutSize);
 
 	float doVerticalLayout(float baseHeight, bool columnBreak, const std::function<float(cocos2d::Node*, float, float)>& fnPositionX, bool applyChildren);
+	float doVerticalLayout(float baseHeight, bool columnBreak, const std::function<float(const LayoutItem&, float, float)>& fnPositionX, bool applyChildren);
 	void doLayoutGridAxisVertical(cocos2d::Vec2 layoutAnchor, cocos2d::Size layoutSize);
 
 	void doGridLayout();
@@ -84,7 +106,7 @@ class Layout : public cocos2d::Node
 	float getHorizontalBaseWidth(const cocos2d::Vector<cocos2d::Node*>& children);
 	float getVerticalBaseHeight(const cocos2d::Vector<cocos2d::Node*>& children);
 
-	public:
+public:
 	static Layout* create();
 
 	Layout();
@@ -95,6 +117,7 @@ class Layout : public cocos2d::Node
 	void onExit() override;
 	void visit(cocos2d::Renderer* renderer, const cocos2d::Mat4& parentTransform, uint32_t parentFlags) override;
 	virtual void update(float dt) override;
+	virtual void removeAllChildren() override;
 
 	virtual void addChildNoDirty(cocos2d::Node* node); // Adds a child without marking the layout as dirty; Good when adding multiple elements, so you can mark layout dirty at a later stage and prevent recalculations
 	virtual void addChildNoDirty(cocos2d::Node* node, int zOrder);
@@ -140,6 +163,16 @@ class Layout : public cocos2d::Node
 
 	void updateLayout();
 	void adjustPosition();
+
+	// For recycling
+	inline void setDoRecycle(bool value) { m_RecycleElements = value; }
+	inline bool getDoRecycle() const noexcept { return m_RecycleElements; }
+
+	void initItems();
+	bool isItemInView(const LayoutItem& item);
+	LayoutItem& createLayoutItem(); // Creates a new LayoutItem with the provided "Data"
+	void setCreatePrefabCallback(std::function<cocos2d::Node*()>&& callback, std::size_t maxPrefabs);																// Called to create a prefab
+	inline void setUpdatePrefabCallback(std::function<void(cocos2d::Node*, const LayoutItem&)>&& callback) { m_PrefabUpdateCallBack = callback; } // Called when updating a prefab
 };
 
 NS_CCR_END

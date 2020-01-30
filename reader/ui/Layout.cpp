@@ -157,6 +157,18 @@ void Layout::removeChild(cocos2d::Node* node, bool cleanup)
 	}
 }
 
+void Layout::removeAllChildren()
+{
+	if (m_RecycleElements)
+	{
+		m_LayoutItems.clear();
+	}
+	else
+	{
+		Node::removeAllChildren();
+	}
+}
+
 void Layout::setContentSize(const cocos2d::Size& size)
 {
 	Node::setContentSize(size);
@@ -254,6 +266,29 @@ void Layout::doBasicLayout()
 
 float Layout::getHorizontalBaseWidth(const cocos2d::Vector<cocos2d::Node*>& children)
 {
+	if (m_RecycleElements)
+	{
+		float newWidth = 0;
+		float activeChildCount = 0;
+
+		if (m_ResizeMode == ResizeMode::Container)
+		{
+			for (auto& child : m_LayoutItems)
+			{
+				activeChildCount++;
+				newWidth += child.ContentSize.width * this->getUsedScaleValue(child.Scale.x);
+			}
+
+			newWidth += (activeChildCount - 1) * m_SpacingX + m_PaddingLeft + m_PaddingRight;
+		}
+		else
+		{
+			newWidth = this->getContentSize().width;
+		}
+
+		return newWidth;
+	}
+
 	float newWidth = 0;
 	float activeChildCount = 0;
 
@@ -288,6 +323,29 @@ float Layout::getHorizontalBaseWidth(const cocos2d::Vector<cocos2d::Node*>& chil
 
 float Layout::getVerticalBaseHeight(const cocos2d::Vector<cocos2d::Node*>& children)
 {
+	if (m_RecycleElements)
+	{
+		float newHeight = 0;
+		float activeChildCount = 0;
+
+		if (m_ResizeMode == ResizeMode::Container)
+		{
+			for (auto& child : m_LayoutItems)
+			{
+				activeChildCount++;
+				newHeight += child.ContentSize.height * this->getUsedScaleValue(child.Scale.y);
+			}
+
+			newHeight += (activeChildCount - 1) * m_SpacingY + m_PaddingBottom + m_PaddingTop;
+		}
+		else
+		{
+			newHeight = this->getContentSize().height;
+		}
+
+		return newHeight;
+	}
+
 	float newHeight = 0;
 	float activeChildCount = 0;
 
@@ -318,6 +376,151 @@ float Layout::getVerticalBaseHeight(const cocos2d::Vector<cocos2d::Node*>& child
 	}
 
 	return newHeight;
+}
+
+float Layout::doHorizontalLayout(float baseWidth, bool rowBreak, const std::function<float(const LayoutItem&, float, float)>& fnPositionY, bool applyChildren)
+{
+	cocos2d::Vec2 layoutAnchor = this->getAnchorPoint();
+	int sign = 1;
+	float paddingX = m_PaddingLeft;
+	float leftBoundaryOfLayout = -layoutAnchor.x * baseWidth;
+
+	if (m_HorizontalDirection == HorizontalDirection::RightToLeft)
+	{
+		sign = -1;
+		leftBoundaryOfLayout = (1 - layoutAnchor.x) * baseWidth;
+		paddingX = m_PaddingRight;
+	}
+
+	float nextX = leftBoundaryOfLayout + sign * paddingX - sign * m_SpacingX;
+	float rowMaxHeight = 0;
+	float tempMaxHeight = 0;
+	float secondMaxHeight = 0;
+
+	float row = 0;
+	float containerResizeBoundary = 0;
+
+	float maxHeightChildAnchorY = 0;
+
+	float activeChildCount = m_LayoutItems.size();
+	float newChildWidth = m_CellSize.width;
+	if (m_LayoutType != LayoutType::Grid && m_ResizeMode == ResizeMode::Children)
+	{
+		newChildWidth = (baseWidth - (m_PaddingLeft + m_PaddingRight) - (activeChildCount - 1) * m_SpacingX) / activeChildCount;
+	}
+
+	for (auto& child : m_LayoutItems)
+	{
+		float childScaleX = this->getUsedScaleValue(child.Scale.x);
+		float childScaleY = this->getUsedScaleValue(child.Scale.y);
+
+		// For resizing children
+		if (m_ResizeMode == ResizeMode::Children)
+		{
+			float height = child.ContentSize.height;
+			float width = newChildWidth / childScaleX;
+
+			if (m_LayoutType == LayoutType::Grid)
+			{
+				height = m_CellSize.height / childScaleY;
+			}
+
+			child.ContentSize = cocos2d::Size(width, height);
+		}
+
+		float anchorX = child.AnchorPoint.x;
+		float childBoundingBoxWidth = child.ContentSize.width * childScaleX;
+		float childBoundingBoxHeight = child.ContentSize.height * childScaleY;
+
+		if (secondMaxHeight > tempMaxHeight)
+		{
+			tempMaxHeight = secondMaxHeight;
+		}
+
+		if (childBoundingBoxHeight >= tempMaxHeight)
+		{
+			secondMaxHeight = tempMaxHeight;
+			tempMaxHeight = childBoundingBoxHeight;
+			maxHeightChildAnchorY = child.AnchorPoint.y;
+		}
+
+		if (m_HorizontalDirection == HorizontalDirection::RightToLeft)
+		{
+			anchorX = 1 - child.AnchorPoint.x;
+		}
+
+		nextX = nextX + sign * anchorX * childBoundingBoxWidth + sign * m_SpacingX;
+		float rightBoundaryOfChild = sign * (1 - anchorX) * childBoundingBoxWidth;
+
+		if (rowBreak)
+		{
+			float rowBreakBoundary = nextX + rightBoundaryOfChild + sign * (sign > 0 ? m_PaddingRight : m_PaddingLeft);
+			float leftToRightRowBreak = m_HorizontalDirection == HorizontalDirection::LeftToRight && rowBreakBoundary > (1 - layoutAnchor.x) * baseWidth;
+			float rightToLeftRowBreak = m_HorizontalDirection == HorizontalDirection::RightToLeft && rowBreakBoundary < -layoutAnchor.x * baseWidth;
+
+			if (leftToRightRowBreak || rightToLeftRowBreak)
+			{
+				if (childBoundingBoxHeight >= tempMaxHeight)
+				{
+					if (secondMaxHeight == 0)
+					{
+						secondMaxHeight = tempMaxHeight;
+					}
+
+					rowMaxHeight += secondMaxHeight;
+					secondMaxHeight = tempMaxHeight;
+				}
+				else
+				{
+					rowMaxHeight += tempMaxHeight;
+					secondMaxHeight = childBoundingBoxHeight;
+					tempMaxHeight = 0;
+				}
+
+				nextX = leftBoundaryOfLayout + sign * (paddingX + anchorX * childBoundingBoxWidth);
+				row++;
+			}
+		}
+
+		float finalPositionY = fnPositionY(child, rowMaxHeight, row);
+		if (baseWidth >= (childBoundingBoxWidth + m_PaddingLeft + m_PaddingRight))
+		{
+			if (applyChildren)
+			{
+				child.Position = cocos2d::Vec2(nextX, finalPositionY);
+			}
+		}
+
+		float signX = 1;
+		float tempFinalPositionY;
+		float topMarign = (tempMaxHeight == 0) ? childBoundingBoxHeight : tempMaxHeight;
+
+		if (m_VerticalDirection == VerticalDirection::TopToBottom)
+		{
+			containerResizeBoundary = containerResizeBoundary || this->getContentSize().height;
+			signX = -1;
+			tempFinalPositionY = finalPositionY + signX * (topMarign * maxHeightChildAnchorY + m_PaddingBottom);
+
+			if (tempFinalPositionY < containerResizeBoundary)
+			{
+				containerResizeBoundary = tempFinalPositionY;
+			}
+		}
+		else
+		{
+			containerResizeBoundary = containerResizeBoundary || -this->getContentSize().height;
+			tempFinalPositionY = finalPositionY + signX * (topMarign * maxHeightChildAnchorY + m_PaddingTop);
+
+			if (tempFinalPositionY > containerResizeBoundary)
+			{
+				containerResizeBoundary = tempFinalPositionY;
+			}
+		}
+
+		nextX += rightBoundaryOfChild;
+	}
+
+	return containerResizeBoundary;
 }
 
 float Layout::doHorizontalLayout(float baseWidth, bool rowBreak, const std::function<float(cocos2d::Node*, float, float)>& fnPositionY, bool applyChildren)
@@ -492,6 +695,56 @@ float Layout::doHorizontalLayout(float baseWidth, bool rowBreak, const std::func
 
 void Layout::doLayoutGridAxisHorizontal(cocos2d::Vec2 layoutAnchor, cocos2d::Size layoutSize)
 {
+	if (m_RecycleElements)
+	{
+		float baseWidth = layoutSize.width;
+
+		float sign = 1;
+		float bottomBoundaryOfLayout = -layoutAnchor.y * layoutSize.height;
+		float paddingY = m_PaddingBottom;
+
+		if (m_VerticalDirection == VerticalDirection::TopToBottom)
+		{
+			sign = -1;
+			bottomBoundaryOfLayout = (1 - layoutAnchor.y) * layoutSize.height;
+			paddingY = m_PaddingTop;
+		}
+
+		auto fnPositionY = [&](const LayoutItem& child, float topOffset, float row) {
+			return bottomBoundaryOfLayout + sign * (topOffset + child.AnchorPoint.y * child.ContentSize.height * this->getUsedScaleValue(child.Scale.y) + paddingY + row * this->m_SpacingY);
+		};
+
+		float newHeight = 0;
+		if (m_ResizeMode == ResizeMode::Container)
+		{
+			// Calculate the new height of container, it won't change the position of it's children
+			float boundary = this->doHorizontalLayout(baseWidth, true, fnPositionY, false);
+			newHeight = bottomBoundaryOfLayout - boundary;
+
+			if (newHeight < 0)
+			{
+				newHeight *= -1;
+			}
+
+			bottomBoundaryOfLayout = -layoutAnchor.y * newHeight;
+
+			if (m_VerticalDirection == VerticalDirection::TopToBottom)
+			{
+				sign = -1;
+				bottomBoundaryOfLayout = (1 - layoutAnchor.y) * newHeight;
+			}
+		}
+
+		this->doHorizontalLayout(baseWidth, true, fnPositionY, true);
+
+		if (m_ResizeMode == ResizeMode::Container)
+		{
+			Node::setContentSize(cocos2d::Size(baseWidth, newHeight));
+		}
+
+		return;
+	}
+
 	float baseWidth = layoutSize.width;
 
 	float sign = 1;
@@ -536,6 +789,151 @@ void Layout::doLayoutGridAxisHorizontal(cocos2d::Vec2 layoutAnchor, cocos2d::Siz
 	{
 		Node::setContentSize(cocos2d::Size(baseWidth, newHeight));
 	}
+}
+
+float Layout::doVerticalLayout(float baseHeight, bool columnBreak, const std::function<float(const LayoutItem&, float, float)>& fnPositionX, bool applyChildren)
+{
+	cocos2d::Vec2 layoutAnchor = this->getAnchorPoint();
+
+	int sign = 1;
+	float paddingY = m_PaddingBottom;
+	float bottomBoundaryOfLayout = -layoutAnchor.y * baseHeight;
+
+	if (m_VerticalDirection == VerticalDirection::TopToBottom)
+	{
+		sign = -1;
+		bottomBoundaryOfLayout = (1 - layoutAnchor.y) * baseHeight;
+		paddingY = m_PaddingTop;
+	}
+
+	float nextY = bottomBoundaryOfLayout + sign * paddingY - sign * m_SpacingY;
+	float columnMaxWidth = 0;
+	float tempMaxWidth = 0;
+	float secondMaxWidth = 0;
+
+	float column = 0;
+	float containerResizeBoundary = 0;
+
+	float maxWidthChildAnchorX = 0;
+	int activeChildCount = m_LayoutItems.size();
+
+	float newChildHeight = m_CellSize.height;
+	if (m_LayoutType != LayoutType::Grid && m_ResizeMode == ResizeMode::Children)
+	{
+		newChildHeight = (baseHeight - (m_PaddingTop + m_PaddingBottom) - (activeChildCount - 1) * m_SpacingY) / activeChildCount;
+	}
+
+	for (auto& child : m_LayoutItems)
+	{
+		float childScaleX = this->getUsedScaleValue(child.Scale.x);
+		float childScaleY = this->getUsedScaleValue(child.Scale.y);
+
+		// For resizing children
+		if (m_ResizeMode == ResizeMode::Children)
+		{
+			float width = child.ContentSize.width;
+			float height = newChildHeight / childScaleY;
+
+			if (m_LayoutType == LayoutType::Grid)
+			{
+				width = m_CellSize.width / childScaleX;
+			}
+
+			child.ContentSize = cocos2d::Size(width, height);
+		}
+
+		float anchorY = child.AnchorPoint.y;
+		float childBoundingBoxWidth = child.ContentSize.width * childScaleX;
+		float childBoundingBoxHeight = child.ContentSize.height * childScaleY;
+
+		if (secondMaxWidth > tempMaxWidth)
+		{
+			tempMaxWidth = secondMaxWidth;
+		}
+
+		if (childBoundingBoxWidth >= tempMaxWidth)
+		{
+			secondMaxWidth = tempMaxWidth;
+			tempMaxWidth = childBoundingBoxWidth;
+			maxWidthChildAnchorX = child.AnchorPoint.x;
+		}
+
+		if (m_VerticalDirection == VerticalDirection::TopToBottom)
+		{
+			anchorY = 1 - child.AnchorPoint.y;
+		}
+
+		nextY = nextY + sign * anchorY * childBoundingBoxHeight + sign * m_SpacingY;
+		float topBoundaryOfChild = sign * (1 - anchorY) * childBoundingBoxHeight;
+
+		if (columnBreak)
+		{
+			float columnBreakBoundary = nextY + topBoundaryOfChild + sign * (sign > 0 ? m_PaddingTop : m_PaddingBottom);
+			float bottomToTopColumnBreak = m_VerticalDirection == VerticalDirection::BottomToTop && columnBreakBoundary > (1 - layoutAnchor.y) * baseHeight;
+			float topToBottomColumnBreak = m_VerticalDirection == VerticalDirection::TopToBottom && columnBreakBoundary < -layoutAnchor.y * baseHeight;
+
+			if (bottomToTopColumnBreak || topToBottomColumnBreak)
+			{
+				if (childBoundingBoxWidth >= tempMaxWidth)
+				{
+					if (secondMaxWidth == 0)
+					{
+						secondMaxWidth = tempMaxWidth;
+					}
+
+					columnMaxWidth += secondMaxWidth;
+					secondMaxWidth = tempMaxWidth;
+				}
+				else
+				{
+					columnMaxWidth += tempMaxWidth;
+					secondMaxWidth = childBoundingBoxWidth;
+					tempMaxWidth = 0;
+				}
+
+				nextY = bottomBoundaryOfLayout + sign * (paddingY + anchorY * childBoundingBoxHeight);
+				column++;
+			}
+		}
+
+		float finalPositionX = fnPositionX(child, columnMaxWidth, column);
+		if (baseHeight >= (childBoundingBoxHeight + (m_PaddingTop + m_PaddingBottom)))
+		{
+			if (applyChildren)
+			{
+				child.Position = cocos2d::Vec2(finalPositionX, nextY);
+			}
+		}
+
+		int signX = 1;
+		float tempFinalPositionX;
+		//when the item is the last column break item, the tempMaxWidth will be 0.
+		float rightMarign = (tempMaxWidth == 0) ? childBoundingBoxWidth : tempMaxWidth;
+
+		if (m_HorizontalDirection == HorizontalDirection::RightToLeft)
+		{
+			signX = -1;
+			containerResizeBoundary = containerResizeBoundary || this->getContentSize().width;
+			tempFinalPositionX = finalPositionX + signX * (rightMarign * maxWidthChildAnchorX + m_PaddingLeft);
+			if (tempFinalPositionX < containerResizeBoundary)
+			{
+				containerResizeBoundary = tempFinalPositionX;
+			}
+		}
+		else
+		{
+			containerResizeBoundary = containerResizeBoundary || -this->getContentSize().width;
+			tempFinalPositionX = finalPositionX + signX * (rightMarign * maxWidthChildAnchorX + m_PaddingRight);
+			if (tempFinalPositionX > containerResizeBoundary)
+			{
+				containerResizeBoundary = tempFinalPositionX;
+			}
+		}
+
+		nextY += topBoundaryOfChild;
+	}
+
+	return containerResizeBoundary;
 }
 
 float Layout::doVerticalLayout(float baseHeight, bool columnBreak, const std::function<float(cocos2d::Node*, float, float)>& fnPositionX, bool applyChildren)
@@ -714,6 +1112,55 @@ float Layout::doVerticalLayout(float baseHeight, bool columnBreak, const std::fu
 
 void Layout::doLayoutGridAxisVertical(cocos2d::Vec2 layoutAnchor, cocos2d::Size layoutSize)
 {
+	if (m_RecycleElements)
+	{
+		float baseHeight = layoutSize.height;
+
+		int sign = 1;
+		float leftBoundaryOfLayout = -layoutAnchor.x * layoutSize.width;
+		float paddingX = m_PaddingLeft;
+
+		if (m_HorizontalDirection == HorizontalDirection::RightToLeft)
+		{
+			sign = -1;
+			leftBoundaryOfLayout = (1 - layoutAnchor.x) * layoutSize.width;
+			paddingX = m_PaddingRight;
+		}
+
+		auto fnPositionX = [&](const LayoutItem& child, float leftOffset, float column) {
+			return leftBoundaryOfLayout + sign * (leftOffset + child.AnchorPoint.x * child.ContentSize.width * this->getUsedScaleValue(child.Scale.x) + paddingX + column * this->m_SpacingX);
+		};
+
+		float newWidth = 0;
+		if (m_ResizeMode == ResizeMode::Container)
+		{
+			float boundary = this->doVerticalLayout(baseHeight, true, fnPositionX, false);
+
+			newWidth = leftBoundaryOfLayout - boundary;
+			if (newWidth < 0)
+			{
+				newWidth *= -1;
+			}
+
+			leftBoundaryOfLayout = -layoutAnchor.x * newWidth;
+
+			if (m_HorizontalDirection == HorizontalDirection::RightToLeft)
+			{
+				sign = -1;
+				leftBoundaryOfLayout = (1 - layoutAnchor.x) * newWidth;
+			}
+		}
+
+		this->doVerticalLayout(baseHeight, true, fnPositionX, true);
+
+		if (m_ResizeMode == ResizeMode::Container)
+		{
+			Node::setContentSize(cocos2d::Size(newWidth, baseHeight));
+		}
+
+		return;
+	}
+
 	float baseHeight = layoutSize.height;
 
 	int sign = 1;
@@ -792,32 +1239,40 @@ void Layout::adjustPosition()
 		const auto offset = cocos2d::Vec2(p_ap.x * p_cs.width, p_ap.y * p_cs.height);
 		const auto new_pos = this->getCreatorPosition() + offset;
 
-		//		Node::setPosition(new_pos);
-
-		for (auto& child : this->getChildren())
+		if (m_RecycleElements)
 		{
-#ifdef CC_PLATFORM_PC
-			// AABB is an internal node for drawing the bounding box around a node
-			if (child->getName() == "##AABB##")
+			for (auto& child : m_LayoutItems)
 			{
-				continue;
+				const auto p_ap = this->getAnchorPoint();
+				const auto p_cs = this->getContentSize();
+
+				const auto offset = cocos2d::Vec2(p_ap.x * p_cs.width, p_ap.y * p_cs.height);
+				const auto new_pos = child.Position + offset;
+
+				child.Position = new_pos;
 			}
+		}
+		else
+		{
+			for (auto& child : this->getChildren())
+			{
+#ifdef CC_PLATFORM_PC
+				// AABB is an internal node for drawing the bounding box around a node
+				if (child->getName() == "##AABB##")
+				{
+					continue;
+				}
 #endif
-			const auto p_ap = this->getAnchorPoint();
-			const auto p_cs = this->getContentSize();
+				const auto p_ap = this->getAnchorPoint();
+				const auto p_cs = this->getContentSize();
 
-			const auto offset = cocos2d::Vec2(p_ap.x * p_cs.width, p_ap.y * p_cs.height);
-			const auto new_pos = child->getPosition() + offset;
+				const auto offset = cocos2d::Vec2(p_ap.x * p_cs.width, p_ap.y * p_cs.height);
+				const auto new_pos = child->getPosition() + offset;
 
-			child->setPosition(new_pos);
+				child->setPosition(new_pos);
+			}
 		}
 	}
-
-	//	if (m_ScrollView)
-	//	{
-	//		m_ScrollView->setInnerContainerSize(cocos2d::Size(m_ScrollView->getInnerContainerSize().width, _contentSize.height));
-	//		m_ScrollView->scrollToTop(0.0f, false);
-	//	}
 }
 
 void Layout::showChild(cocos2d::Node* child)
@@ -840,6 +1295,93 @@ void Layout::hideChild(cocos2d::Node* child)
 	}
 }
 
+LayoutItem& Layout::createLayoutItem()
+{
+	m_LayoutItems.emplace_back(LayoutItem{});
+	return m_LayoutItems.back();
+}
+
+void Layout::setCreatePrefabCallback(std::function<cocos2d::Node*()>&& callback, std::size_t maxPrefabs)
+{
+	m_LayoutItemPrefabs.clear();
+	this->removeAllChildren();
+
+	for (int i = 0; i < maxPrefabs; ++i)
+	{
+		auto prefab = callback();
+		m_LayoutItemPrefabs.push_back(prefab);
+
+		this->addChildNoDirty(prefab);
+	}
+}
+
+bool Layout::isItemInView(const LayoutItem& node)
+{
+	if (m_RecycleElements)
+	{
+		cocos2d::Rect bounds = m_ScrollView->getContainerBounds();
+
+		// float childScaleX = this->getUsedScaleValue(node->getScaleX());
+		float childScaleY = this->getUsedScaleValue(node.Scale.y);
+		float childHeight = node.ContentSize.height * childScaleY;
+
+		// Get the top edge of this child
+		float topEdge = (1.0f - node.AnchorPoint.y) * childHeight + node.Position.y;
+		topEdge = (_anchorPoint.y * _contentSize.height) - topEdge;
+
+		float bottomEdge = node.Position.y - (node.AnchorPoint.y) * childHeight;
+		bottomEdge = (_anchorPoint.y * _contentSize.height) - bottomEdge;
+
+		// Check if y is in bounds
+		if ((topEdge >= bounds.origin.y && topEdge <= bounds.size.height) || (bottomEdge >= bounds.origin.y && bottomEdge <= bounds.size.height))
+		{
+			return true;
+		}
+
+		return false;
+	}
+
+	return true;
+}
+
+void Layout::initItems()
+{
+	if (m_RecycleElements)
+	{
+		cocos2d::Rect bounds = m_ScrollView->getContainerBounds();
+		int i = 0;
+		int prefabIndex = 0;
+
+		for (std::size_t i = 0; i < m_LayoutItemPrefabs.size(); ++i)
+		{
+			auto prefab = m_LayoutItemPrefabs.at(i);
+			prefab->setVisible(false);
+		}
+
+		for (auto size = m_LayoutItems.size(); i < size; ++i)
+		{
+			auto item = m_LayoutItems.at(i);
+			if (this->isItemInView(item))
+			{
+				// Select a prefab from the pool
+				try
+				{
+					auto prefab = m_LayoutItemPrefabs.at(prefabIndex);
+					prefab->setVisible(true);
+					prefab->setPosition(item.Position);
+					m_PrefabUpdateCallBack(prefab, item);
+
+					prefabIndex++;
+				}
+				catch (std::exception& e)
+				{
+					CCLOG("Not enough prefabs to draw!");
+				}
+			}
+		}
+	}
+}
+
 void Layout::visit(cocos2d::Renderer* renderer, const cocos2d::Mat4& parentTransform, uint32_t parentFlags)
 {
 	// quick return if not visible. children won't be drawn.
@@ -848,7 +1390,108 @@ void Layout::visit(cocos2d::Renderer* renderer, const cocos2d::Mat4& parentTrans
 		return;
 	}
 
-	if (m_ScrollView)
+	if (m_RecycleElements && m_ScrollView)
+	{
+		uint32_t flags = processParentFlags(parentTransform, parentFlags);
+
+		// IMPORTANT:
+		// To ease the migration to v3.0, we still support the Mat4 stack,
+		// but it is deprecated and your code should not rely on it
+		_director->pushMatrix(cocos2d::MATRIX_STACK_TYPE::MATRIX_STACK_MODELVIEW);
+		_director->loadMatrix(cocos2d::MATRIX_STACK_TYPE::MATRIX_STACK_MODELVIEW, _modelViewTransform);
+
+		bool visibleByCamera = isVisitableByVisitingCamera();
+		int i = 0;
+		int prefabIndex = 0;
+
+		int skippedChildren = 0;
+		int drawnChildren = 0;
+
+		m_StartIndex = -1;
+		m_EndIndex = -1;
+
+		if (!_children.empty())
+		{
+			this->sortAllChildren();
+			cocos2d::Rect bounds = m_ScrollView->getContainerBounds();
+
+			for (std::size_t i = 0; i < m_LayoutItemPrefabs.size(); ++i)
+			{
+				auto prefab = m_LayoutItemPrefabs.at(i);
+				prefab->setVisible(false);
+			}
+
+			// draw children zOrder < 0
+			for (auto size = m_LayoutItems.size(); i < size; ++i)
+			{
+				auto item = m_LayoutItems.at(i);
+				if (this->isItemInView(item))
+				{
+					m_StartIndex = m_StartIndex == -1 ? i : m_StartIndex;
+
+					// Select a prefab from the pool
+					try
+					{
+						auto prefab = m_LayoutItemPrefabs.at(prefabIndex);
+						// prefab->setAnchorPoint(node.AnchorPoint);
+						// prefab->setScaleX(node.Scale.x);
+						// prefab->setScaleY(node.Scale.y);
+						// prefab->setContentSize(node.ContentSize);
+
+						// Only call update if the scrollview is scrolled
+						if (m_ScrollView->movedUpwards() || m_ScrollView->movedDownwards())
+						{
+							CCLOG("Updating prefabs");
+							prefab->setPosition(item.Position);
+							m_PrefabUpdateCallBack(prefab, item);
+						}
+
+						prefab->setVisible(true);
+						prefab->visit(renderer, _modelViewTransform, flags);
+						// if (node /* && node->getLocalZOrder() < 0*/)
+						// node->visit(renderer, _modelViewTransform, flags);
+						// else
+						// break;
+
+						prefabIndex++;
+					}
+					catch (std::exception& e)
+					{
+						CCLOG("Not enough prefabs to draw!");
+					}
+
+					drawnChildren++;
+				}
+				else
+				{
+					m_EndIndex = m_EndIndex == -1 ? i - 1 : m_EndIndex;
+					skippedChildren++;
+				}
+				//				}
+			}
+
+			// self draw
+			if (visibleByCamera)
+				this->draw(renderer, _modelViewTransform, flags);
+
+			for (auto it = _children.cbegin() + prefabIndex, itCend = _children.cend(); it != itCend; ++it)
+				(*it)->visit(renderer, _modelViewTransform, flags);
+		}
+		else if (visibleByCamera)
+		{
+			this->draw(renderer, _modelViewTransform, flags);
+		}
+
+		_director->popMatrix(cocos2d::MATRIX_STACK_TYPE::MATRIX_STACK_MODELVIEW);
+
+		// FIX ME: Why need to set _orderOfArrival to 0??
+		// Please refer to https://github.com/cocos2d/cocos2d-x/pull/6920
+		// reset for next frame
+		// _orderOfArrival = 0;
+
+		return;
+	}
+	else if (m_ScrollView)
 	{
 		uint32_t flags = processParentFlags(parentTransform, parentFlags);
 
