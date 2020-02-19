@@ -1441,7 +1441,6 @@ void Layout::visit(cocos2d::Renderer* renderer, const cocos2d::Mat4& parentTrans
 						// Only call update if the scrollview is scrolled
 						if (m_ScrollView->movedUpwards() || m_ScrollView->movedDownwards())
 						{
-							CCLOG("Updating prefabs");
 							prefab->setPosition(item.Position);
 							m_PrefabUpdateCallBack(prefab, item);
 						}

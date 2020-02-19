@@ -10,13 +10,13 @@ NS_CCR_BEGIN
 
 class Button : public cocos2d::ui::Button
 {
-	private:
+private:
 	std::function<void()> m_ListenerArg0 = nullptr;
 	std::function<void(creator::Button*)> m_ListenerArg1 = nullptr;
 
 	int m_PositionDiff;
 
-	public:
+public:
 	enum TransitionType
 	{
 		NONE,
@@ -88,7 +88,7 @@ class Button : public cocos2d::ui::Button
 	// This makes touches on the button only fire click events if the touch area is not moved (or moved below a minimum threshold)
 	void disableClicksOnScroll();
 
-	public:
+public:
 	float _actionDuration;
 	TransitionType _transitionType;
 
