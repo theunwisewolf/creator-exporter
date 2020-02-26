@@ -277,7 +277,8 @@ let create_node = function (node_type, node_data) {
         'dragonBones.ArmatureDisplay': DragonBones,
         'cc.MotionStreak': MotionStreak,
         'cc.Layout': Layout,
-        'DynamicScrollView': ScrollView
+        'DynamicScrollView': ScrollView,
+        'Gradient': Sprite,
     };
 
     if (node_type in classMap)

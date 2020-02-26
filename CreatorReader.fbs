@@ -122,7 +122,7 @@ table Node
     localZOrder:            int = 0;
     opacity:                ubyte = 255;
     opacityModifyRGB:       bool = true;
-    position:               Vec2;
+    position:               Vec3;
     rotationSkewX:          float = 0;
     rotationSkewY:          float = 0;
     scaleX:                 float = 1;
@@ -152,6 +152,7 @@ table Sprite
     fillCenter:         Vec2;
     fillStart:          float;
     fillRange:          float;
+    gradient:           Gradient;
 }
 
 table Label
@@ -231,15 +232,15 @@ table Button
 
 table ProgressBar
 {
-    node:Node;
-    percent:float;
-    backgroundSpriteFrameName:string;
-    barSpriteFrameName:string;
-    barSpriteType:int;
-    reverse:bool;
-    barPosition:Vec2;
-    barAnchorPoint:Vec2;
-    barContentSize:Size;
+    node:                           Node;
+    percent:                        float;
+    backgroundSpriteFrameName:      string;
+    barSpriteFrameName:             string;
+    barSpriteType:                  int;
+    reverse:                        bool;
+    barPosition:                    Vec3;
+    barAnchorPoint:                 Vec2;
+    barContentSize:                 Size;
 }
 
 table ScrollView
@@ -374,11 +375,11 @@ table Mask
 
 table PageViewIndicator
 {
-    positionAnchor:Vec2;
-    spriteFrame:string;
-    spriteFrameFromTP:bool;                    // indicates whether sprite frame from texture packer
-    space:float;
-    direction:int;
+    positionAnchor:     Vec2;
+    spriteFrame:        string;
+    spriteFrameFromTP:  bool;                    // indicates whether sprite frame from texture packer
+    space:              float;
+    direction:          int;
 }
 
 table PageViewPage
@@ -479,6 +480,13 @@ table LabelShadow
     color:      ColorRGBA;
     blurRadius: float;
     offset:     Vec2;
+}
+
+table Gradient
+{
+    startColor: ColorRGBA;
+    endColor:   ColorRGBA;
+    type:       int;
 }
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-

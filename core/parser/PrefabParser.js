@@ -128,17 +128,21 @@ class PrefabParser {
                         "x": 0.5,
                         "y": 0.5
                     },
-                    "_position": {
-                        "__type__": "cc.Vec3",
-                        "x": 0,
-                        "y": 0,
-                        "z": 0
-                    },
-                    "_scale": {
-                        "__type__": "cc.Vec3",
-                        "x": 1,
-                        "y": 1,
-                        "z": 1
+                    "_trs": {
+                        "__type__": "TypedArray",
+                        "ctor": "Float64Array",
+                        "array": [
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            1,
+                            1,
+                            1,
+                            1
+                        ]
                     },
                 });
 
@@ -159,7 +163,7 @@ class PrefabParser {
         // Parse any animations
         Object.keys(state._clips).forEach((key) => {
             let object = state._clips[key];
-            Utils.log("Parsing animation clip:" + object.name);
+            Utils.log("Parsing animation clip: " + object.name);
             let filepath = path.join(Constants.JSON_ANIMATIONS_PATH, object.name) + '.animation';
             fire_fs.ensureDirSync(path.dirname(filepath));
             let file = fs.openSync(filepath, 'w');
@@ -169,15 +173,14 @@ class PrefabParser {
             fs.close(file);
 
             // Compile the file to binary
-			let params = ['-b', '-o', Constants.ANIMATIONS_BINARY_PATH, Constants.CREATOR_ANIMATION_FBS, filepath];
+            let params = ['-b', '-o', Constants.ANIMATIONS_BINARY_PATH, Constants.CREATOR_ANIMATION_FBS, filepath];
 
-			Utils.runcommand(Constants.FLATC, params, function (code) {
-                if (code != 0)
-                {
+            Utils.runcommand(Constants.FLATC, params, function (code) {
+                if (code != 0) {
                     Utils.failed('Error while compiling ' + filepath);
                     return;
                 }
-			});
+            });
         });
 
         // Empty the clips

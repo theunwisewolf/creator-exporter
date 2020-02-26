@@ -567,6 +567,11 @@ cocos2d::Node* Reader::createTree(const buffers::NodeTree* tree) const
 
 		if (spriteBuffer->spriteType() == buffers::SpriteType::SpriteType_Sliced)
 		{
+			if (spriteBuffer->node()->name()->str() == "world_collection")
+			{
+				CCLOG("Sprite loaded");
+			}
+
 			node = this->createScale9Sprite(spriteBuffer);
 		}
 		else if (spriteBuffer->spriteType() == buffers::SpriteType::SpriteType_Filled)

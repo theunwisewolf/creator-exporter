@@ -24,7 +24,7 @@ class Prefab extends Node {
         let prefab_json = this._get_json_of_prefab(prefab_node_data);
         let root_node_index = prefab_json[0].data.__id__;
         let root_node_data = prefab_json[root_node_index];
-
+        
         // get type of root node, should modify state._json_data to prefab file content
         // when parsing prefab files
         let old_state_json_data = state._json_data;

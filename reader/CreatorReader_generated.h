@@ -83,6 +83,8 @@ struct LabelOutline;
 
 struct LabelShadow;
 
+struct Gradient;
+
 enum FontType {
   FontType_System = 0,
   FontType_BMFont = 1,
@@ -1550,8 +1552,8 @@ struct Node FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   bool opacityModifyRGB() const {
     return GetField<uint8_t>(VT_OPACITYMODIFYRGB, 1) != 0;
   }
-  const Vec2 *position() const {
-    return GetStruct<const Vec2 *>(VT_POSITION);
+  const Vec3 *position() const {
+    return GetStruct<const Vec3 *>(VT_POSITION);
   }
   float rotationSkewX() const {
     return GetField<float>(VT_ROTATIONSKEWX, 0.0f);
@@ -1599,7 +1601,7 @@ struct Node FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            VerifyField<int32_t>(verifier, VT_LOCALZORDER) &&
            VerifyField<uint8_t>(verifier, VT_OPACITY) &&
            VerifyField<uint8_t>(verifier, VT_OPACITYMODIFYRGB) &&
-           VerifyField<Vec2>(verifier, VT_POSITION) &&
+           VerifyField<Vec3>(verifier, VT_POSITION) &&
            VerifyField<float>(verifier, VT_ROTATIONSKEWX) &&
            VerifyField<float>(verifier, VT_ROTATIONSKEWY) &&
            VerifyField<float>(verifier, VT_SCALEX) &&
@@ -1652,7 +1654,7 @@ struct NodeBuilder {
   void add_opacityModifyRGB(bool opacityModifyRGB) {
     fbb_.AddElement<uint8_t>(Node::VT_OPACITYMODIFYRGB, static_cast<uint8_t>(opacityModifyRGB), 1);
   }
-  void add_position(const Vec2 *position) {
+  void add_position(const Vec3 *position) {
     fbb_.AddStruct(Node::VT_POSITION, position);
   }
   void add_rotationSkewX(float rotationSkewX) {
@@ -1712,7 +1714,7 @@ inline flatbuffers::Offset<Node> CreateNode(
     int32_t localZOrder = 0,
     uint8_t opacity = 255,
     bool opacityModifyRGB = true,
-    const Vec2 *position = 0,
+    const Vec3 *position = 0,
     float rotationSkewX = 0.0f,
     float rotationSkewY = 0.0f,
     float scaleX = 1.0f,
@@ -1762,7 +1764,7 @@ inline flatbuffers::Offset<Node> CreateNodeDirect(
     int32_t localZOrder = 0,
     uint8_t opacity = 255,
     bool opacityModifyRGB = true,
-    const Vec2 *position = 0,
+    const Vec3 *position = 0,
     float rotationSkewX = 0.0f,
     float rotationSkewY = 0.0f,
     float scaleX = 1.0f,
@@ -1983,7 +1985,8 @@ struct Label FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_OVERFLOWTYPE = 20,
     VT_ENABLEWRAP = 22,
     VT_OUTLINE = 24,
-    VT_SHADOW = 26
+    VT_SHADOW = 26,
+    VT_GRADIENT = 28
   };
   const Node *node() const {
     return GetPointer<const Node *>(VT_NODE);
@@ -2021,6 +2024,9 @@ struct Label FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const LabelShadow *shadow() const {
     return GetPointer<const LabelShadow *>(VT_SHADOW);
   }
+  const Gradient *gradient() const {
+    return GetPointer<const Gradient *>(VT_GRADIENT);
+  }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_NODE) &&
@@ -2040,6 +2046,8 @@ struct Label FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            verifier.VerifyTable(outline()) &&
            VerifyOffset(verifier, VT_SHADOW) &&
            verifier.VerifyTable(shadow()) &&
+           VerifyOffset(verifier, VT_GRADIENT) &&
+           verifier.VerifyTable(gradient()) &&
            verifier.EndTable();
   }
 };
@@ -2083,6 +2091,9 @@ struct LabelBuilder {
   void add_shadow(flatbuffers::Offset<LabelShadow> shadow) {
     fbb_.AddOffset(Label::VT_SHADOW, shadow);
   }
+  void add_gradient(flatbuffers::Offset<Gradient> gradient) {
+    fbb_.AddOffset(Label::VT_GRADIENT, gradient);
+  }
   explicit LabelBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
@@ -2108,8 +2119,10 @@ inline flatbuffers::Offset<Label> CreateLabel(
     LabelOverflowType overflowType = LabelOverflowType_None,
     bool enableWrap = false,
     flatbuffers::Offset<LabelOutline> outline = 0,
-    flatbuffers::Offset<LabelShadow> shadow = 0) {
+    flatbuffers::Offset<LabelShadow> shadow = 0,
+    flatbuffers::Offset<Gradient> gradient = 0) {
   LabelBuilder builder_(_fbb);
+  builder_.add_gradient(gradient);
   builder_.add_shadow(shadow);
   builder_.add_outline(outline);
   builder_.add_fontSize(fontSize);
@@ -2138,7 +2151,8 @@ inline flatbuffers::Offset<Label> CreateLabelDirect(
     LabelOverflowType overflowType = LabelOverflowType_None,
     bool enableWrap = false,
     flatbuffers::Offset<LabelOutline> outline = 0,
-    flatbuffers::Offset<LabelShadow> shadow = 0) {
+    flatbuffers::Offset<LabelShadow> shadow = 0,
+    flatbuffers::Offset<Gradient> gradient = 0) {
   return creator::buffers::CreateLabel(
       _fbb,
       node,
@@ -2152,7 +2166,8 @@ inline flatbuffers::Offset<Label> CreateLabelDirect(
       overflowType,
       enableWrap,
       outline,
-      shadow);
+      shadow,
+      gradient);
 }
 
 struct RichText FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
@@ -2760,8 +2775,8 @@ struct ProgressBar FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   bool reverse() const {
     return GetField<uint8_t>(VT_REVERSE, 0) != 0;
   }
-  const Vec2 *barPosition() const {
-    return GetStruct<const Vec2 *>(VT_BARPOSITION);
+  const Vec3 *barPosition() const {
+    return GetStruct<const Vec3 *>(VT_BARPOSITION);
   }
   const Vec2 *barAnchorPoint() const {
     return GetStruct<const Vec2 *>(VT_BARANCHORPOINT);
@@ -2780,7 +2795,7 @@ struct ProgressBar FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            verifier.VerifyString(barSpriteFrameName()) &&
            VerifyField<int32_t>(verifier, VT_BARSPRITETYPE) &&
            VerifyField<uint8_t>(verifier, VT_REVERSE) &&
-           VerifyField<Vec2>(verifier, VT_BARPOSITION) &&
+           VerifyField<Vec3>(verifier, VT_BARPOSITION) &&
            VerifyField<Vec2>(verifier, VT_BARANCHORPOINT) &&
            VerifyField<Size>(verifier, VT_BARCONTENTSIZE) &&
            verifier.EndTable();
@@ -2808,7 +2823,7 @@ struct ProgressBarBuilder {
   void add_reverse(bool reverse) {
     fbb_.AddElement<uint8_t>(ProgressBar::VT_REVERSE, static_cast<uint8_t>(reverse), 0);
   }
-  void add_barPosition(const Vec2 *barPosition) {
+  void add_barPosition(const Vec3 *barPosition) {
     fbb_.AddStruct(ProgressBar::VT_BARPOSITION, barPosition);
   }
   void add_barAnchorPoint(const Vec2 *barAnchorPoint) {
@@ -2837,7 +2852,7 @@ inline flatbuffers::Offset<ProgressBar> CreateProgressBar(
     flatbuffers::Offset<flatbuffers::String> barSpriteFrameName = 0,
     int32_t barSpriteType = 0,
     bool reverse = false,
-    const Vec2 *barPosition = 0,
+    const Vec3 *barPosition = 0,
     const Vec2 *barAnchorPoint = 0,
     const Size *barContentSize = 0) {
   ProgressBarBuilder builder_(_fbb);
@@ -2861,7 +2876,7 @@ inline flatbuffers::Offset<ProgressBar> CreateProgressBarDirect(
     const char *barSpriteFrameName = nullptr,
     int32_t barSpriteType = 0,
     bool reverse = false,
-    const Vec2 *barPosition = 0,
+    const Vec3 *barPosition = 0,
     const Vec2 *barAnchorPoint = 0,
     const Size *barContentSize = 0) {
   return creator::buffers::CreateProgressBar(
@@ -5234,6 +5249,66 @@ inline flatbuffers::Offset<LabelShadow> CreateLabelShadow(
   builder_.add_offset(offset);
   builder_.add_blurRadius(blurRadius);
   builder_.add_color(color);
+  return builder_.Finish();
+}
+
+struct Gradient FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  enum {
+    VT_STARTCOLOR = 4,
+    VT_ENDCOLOR = 6,
+    VT_TYPE = 8
+  };
+  const ColorRGBA *startColor() const {
+    return GetStruct<const ColorRGBA *>(VT_STARTCOLOR);
+  }
+  const ColorRGBA *endColor() const {
+    return GetStruct<const ColorRGBA *>(VT_ENDCOLOR);
+  }
+  int32_t type() const {
+    return GetField<int32_t>(VT_TYPE, 0);
+  }
+  bool Verify(flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyField<ColorRGBA>(verifier, VT_STARTCOLOR) &&
+           VerifyField<ColorRGBA>(verifier, VT_ENDCOLOR) &&
+           VerifyField<int32_t>(verifier, VT_TYPE) &&
+           verifier.EndTable();
+  }
+};
+
+struct GradientBuilder {
+  flatbuffers::FlatBufferBuilder &fbb_;
+  flatbuffers::uoffset_t start_;
+  void add_startColor(const ColorRGBA *startColor) {
+    fbb_.AddStruct(Gradient::VT_STARTCOLOR, startColor);
+  }
+  void add_endColor(const ColorRGBA *endColor) {
+    fbb_.AddStruct(Gradient::VT_ENDCOLOR, endColor);
+  }
+  void add_type(int32_t type) {
+    fbb_.AddElement<int32_t>(Gradient::VT_TYPE, type, 0);
+  }
+  explicit GradientBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  GradientBuilder &operator=(const GradientBuilder &);
+  flatbuffers::Offset<Gradient> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = flatbuffers::Offset<Gradient>(end);
+    return o;
+  }
+};
+
+inline flatbuffers::Offset<Gradient> CreateGradient(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    const ColorRGBA *startColor = 0,
+    const ColorRGBA *endColor = 0,
+    int32_t type = 0) {
+  GradientBuilder builder_(_fbb);
+  builder_.add_type(type);
+  builder_.add_endColor(endColor);
+  builder_.add_startColor(startColor);
   return builder_.Finish();
 }
 

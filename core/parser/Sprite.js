@@ -1,4 +1,5 @@
 const Node = require('./Node');
+const Utils = require('./Utils');
 const state = require('./Global');
 const get_sprite_frame_name_by_uuid = require('./Utils').get_sprite_frame_name_by_uuid;
 
@@ -39,6 +40,34 @@ class Sprite extends Node {
 
                 //state._usedSpriteFrames.push(spriteFrameName);
             }
+        }
+
+        // Gradient
+        // Shadow
+        let gradient_component = Node.get_node_component_of_type(this._node_data, 'Gradient');
+        Utils.log("Searching gradient component");
+        if (gradient_component) {
+            Utils.log("Found gradient component");
+            let startColor = gradient_component._startColor;
+            let endColor = gradient_component._endColor;
+
+            let gradient_info = {
+                startColor: {
+                    r: startColor.r,
+                    g: startColor.g,
+                    b: startColor.b,
+                    a: startColor.a
+                },
+                endColor: {
+                    r: endColor.r,
+                    g: endColor.g,
+                    b: endColor.b,
+                    a: endColor.a
+                },
+                type: gradient_component._gradtype
+            }
+
+            this._properties.gradient = gradient_info;
         }
     }
 }

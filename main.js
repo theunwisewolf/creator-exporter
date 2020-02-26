@@ -115,7 +115,7 @@ module.exports = {
 
         'remove-temp-files'() {
             let timeFilePath = Path.join(Constants.TEMP_PATH, "creator_files.time");
-            fs.unlink(timeFilePath);
+            fs.unlinkSync(timeFilePath);
 
             Utils.success("Temp files were removed");
         },

@@ -24,7 +24,7 @@ class Mask extends Node {
 
         if (this._properties.type === 'ImageStencil') {
             this.add_property_int('alphaThreshold', '_N$alphaThreshold', component);
-            this._properties.spriteFrame = Utils.get_sprite_frame_name_by_uuid(component._N$spriteFrame.__uuid__);
+            this._properties.spriteFrame = Utils.get_sprite_frame_name_by_uuid(component._spriteFrame.__uuid__);
         }
     }
 }

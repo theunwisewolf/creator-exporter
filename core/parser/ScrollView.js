@@ -42,8 +42,8 @@ class ScrollView extends Node {
     parse_properties() {
         super.parse_node_properties();
 
-        this._properties = {node: this._properties};
-        
+        this._properties = { node: this._properties };
+
         // data from 'node' component
         this.add_property_rgb('backgroundImageColor', '_color', this._node_data);
 
@@ -61,7 +61,7 @@ class ScrollView extends Node {
             else
                 this._properties.backgroundImageScale9Enabled = false;
         }
-        
+
         // data from scroll view component
         let component_sv = this.get_component();
 
@@ -91,9 +91,11 @@ class ScrollView extends Node {
         // position is being adjusted in `adjust_child_parameters`
         this._content_ap = content_node._anchorPoint;
 
-        this._content_pos = content_node._position;
+        let transform = content_node._trs.array;
+        let position = { x: transform[0], y: transform[1], z: transform[2] };
+        this._content_pos = position;
 
-        content_node._children.forEach(function(child_idx) {
+        content_node._children.forEach(function (child_idx) {
             this.parse_child(child_idx.__id__);
         }.bind(this));
     }
@@ -105,9 +107,11 @@ class ScrollView extends Node {
         let pos = properties.position;
         let x = pos.x;
         let y = pos.y;
+
         properties.position = {
             x: x + this._content_size.width * this._content_ap.x,
-            y: y + this._content_size.height * this._content_ap.y
+            y: y + this._content_size.height * this._content_ap.y,
+            z: 0
         };
     }
 }

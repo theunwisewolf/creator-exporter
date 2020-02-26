@@ -11,7 +11,7 @@ class ProgressBar extends Node {
     parse_properties() {
         // 1st: parse self
         this.parse_node_properties();
-        this._properties = {node: this._properties};
+        this._properties = { node: this._properties };
 
         // background sprite
         let bg_component = Node.get_node_component_of_type(this._node_data, 'cc.Sprite');
@@ -45,9 +45,10 @@ class ProgressBar extends Node {
                 this._properties.barSpriteFrameName = state._assetpath + Utils.get_sprite_frame_name_by_uuid(bar_sprite_uuid);
             }
 
-            this._properties.barPosition = { x: bar_sprite_node._position.x, y: bar_sprite_node._position.y };
+            let transform = bar_sprite_node._trs.array;
+            let position = { x: transform[0], y: transform[1], z: transform[2] };
+            this._properties.barPosition = { x: position.x, y: position.y, z: position.z };
 
-            
             this._properties.barContentSize = { w: bar_component._N$totalLength, h: bar_sprite_node._contentSize.height };
             this._properties.barAnchorPoint = { x: bar_sprite_node._anchorPoint.x, y: bar_sprite_node._anchorPoint.y };
             this._properties.barSpriteType = bar_sprite_data._type;
@@ -60,7 +61,7 @@ class ProgressBar extends Node {
         this._properties.reverse = bar_component._N$reverse;
 
         // 2nd: parse children
-        this._node_data._children.forEach(function(item) {
+        this._node_data._children.forEach(function (item) {
             this.parse_child(item.__id__);
         }.bind(this));
 

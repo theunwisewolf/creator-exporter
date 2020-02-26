@@ -118,7 +118,7 @@ class FireParser {
         // Parse any animations
         Object.keys(state._clips).forEach((key) => {
             let object = state._clips[key];
-            Utils.log("Parsing animation clip:" + object.name);
+            Utils.log("Parsing animation clip: " + object.name);
             let filepath = path.join(Constants.JSON_ANIMATIONS_PATH, object.name) + '.animation';
             fire_fs.ensureDirSync(path.dirname(filepath));
             let file = fs.openSync(filepath, 'w');

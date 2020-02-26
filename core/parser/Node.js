@@ -87,8 +87,12 @@ class Node {
 			}
 		}
 
-		Utils.log('Unknown components ' + node_components);
-		Utils.log('treat all unknown components as cc.Node')
+		if (node_components.length)
+		{
+			Utils.log('Unknown components ' + JSON.stringify(node_components));
+			Utils.log('treat all unknown components as cc.Node')
+		}
+		
 		return 'cc.Node';
 	}
 
@@ -230,6 +234,16 @@ class Node {
 
 	parse_node_properties() {
 		let data = this._node_data;
+
+		// Cocos Creator 2.2+
+		let transform = data._trs.array;
+		let position = { x: transform[0], y: transform[1], z: transform[2] };
+		let scale = { x: transform[7], y: transform[8], z: transform[9] };
+
+		this._properties.position = { x: transform[0], y: transform[1], z: transform[2] };
+		this._properties.scaleX = transform[7]; 
+		this._properties.scaleY = transform[8]; 
+
 		this.add_property_size('contentSize', '_contentSize', data);
 		this.add_property_bool('enabled', '_active', data);
 		this.add_property_str('name', '_name', data);
@@ -240,11 +254,11 @@ class Node {
 		this.add_property_int('localZOrder', '_localZOrder', data);
 		this.add_property_int('opacity', '_opacity', data);
 		this.add_property_bool('opacityModifyRGB', '_opacityModifyRGB', data);
-		this.add_property_vec2('position', '_position', data);
+		// this.add_property_vec2('position', '_position', data);
 		//this.add_property_int('rotationSkewX', '_rotationX', data);
 		//this.add_property_int('rotationSkewY', '_rotationY', data);
 		this.add_property_rotation('_eulerAngles', data);
-		this.add_property_scale('_scale', data);
+		// this.add_property_scale('_scale', data);
 		// this.add_property_int('scaleX', '_scaleX', data);
 		// this.add_property_int('scaleY', '_scaleY', data);
 		this.add_property_int('skewX', '_skewX', data);

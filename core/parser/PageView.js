@@ -52,9 +52,12 @@ class PageView extends Node {
         
         this.add_property_int.bind(indicator)('space', 'spacing', indicator_component);
 
+        let transform = indicator_node._trs.array;
+        let position = { x: transform[0], y: transform[1], z: transform[2] };
+
         let pageview_size = this._properties.node.contentSize;
-        indicator._properties.positionAnchor = {x: 0.5 + indicator_node._position.x / pageview_size.w,
-                                             y: 0.5 + indicator_node._position.y / pageview_size.h};
+        indicator._properties.positionAnchor = {x: 0.5 + position.x / pageview_size.w,
+                                             y: 0.5 + position.y / pageview_size.h};
 
         if (indicator_component.spriteFrame) {
             let sprite_frame_uuid = indicator_component.spriteFrame.__uuid__;
