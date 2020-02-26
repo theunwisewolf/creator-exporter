@@ -170,6 +170,7 @@ table Label
     enableWrap:             bool;
     outline:                LabelOutline;
     shadow:                 LabelShadow;
+    gradient:               Gradient;
 }
 
 table RichText

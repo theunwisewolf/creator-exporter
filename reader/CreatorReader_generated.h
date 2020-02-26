@@ -1814,7 +1814,8 @@ struct Sprite FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_FILLTYPE = 18,
     VT_FILLCENTER = 20,
     VT_FILLSTART = 22,
-    VT_FILLRANGE = 24
+    VT_FILLRANGE = 24,
+    VT_GRADIENT = 26
   };
   const Node *node() const {
     return GetPointer<const Node *>(VT_NODE);
@@ -1849,6 +1850,9 @@ struct Sprite FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   float fillRange() const {
     return GetField<float>(VT_FILLRANGE, 0.0f);
   }
+  const Gradient *gradient() const {
+    return GetPointer<const Gradient *>(VT_GRADIENT);
+  }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_NODE) &&
@@ -1864,6 +1868,8 @@ struct Sprite FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            VerifyField<Vec2>(verifier, VT_FILLCENTER) &&
            VerifyField<float>(verifier, VT_FILLSTART) &&
            VerifyField<float>(verifier, VT_FILLRANGE) &&
+           VerifyOffset(verifier, VT_GRADIENT) &&
+           verifier.VerifyTable(gradient()) &&
            verifier.EndTable();
   }
 };
@@ -1904,6 +1910,9 @@ struct SpriteBuilder {
   void add_fillRange(float fillRange) {
     fbb_.AddElement<float>(Sprite::VT_FILLRANGE, fillRange, 0.0f);
   }
+  void add_gradient(flatbuffers::Offset<Gradient> gradient) {
+    fbb_.AddOffset(Sprite::VT_GRADIENT, gradient);
+  }
   explicit SpriteBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
@@ -1928,8 +1937,10 @@ inline flatbuffers::Offset<Sprite> CreateSprite(
     SpriteFillType fillType = SpriteFillType_Horizontal,
     const Vec2 *fillCenter = 0,
     float fillStart = 0.0f,
-    float fillRange = 0.0f) {
+    float fillRange = 0.0f,
+    flatbuffers::Offset<Gradient> gradient = 0) {
   SpriteBuilder builder_(_fbb);
+  builder_.add_gradient(gradient);
   builder_.add_fillRange(fillRange);
   builder_.add_fillStart(fillStart);
   builder_.add_fillCenter(fillCenter);
@@ -1956,7 +1967,8 @@ inline flatbuffers::Offset<Sprite> CreateSpriteDirect(
     SpriteFillType fillType = SpriteFillType_Horizontal,
     const Vec2 *fillCenter = 0,
     float fillStart = 0.0f,
-    float fillRange = 0.0f) {
+    float fillRange = 0.0f,
+    flatbuffers::Offset<Gradient> gradient = 0) {
   return creator::buffers::CreateSprite(
       _fbb,
       node,
@@ -1969,7 +1981,8 @@ inline flatbuffers::Offset<Sprite> CreateSpriteDirect(
       fillType,
       fillCenter,
       fillStart,
-      fillRange);
+      fillRange,
+      gradient);
 }
 
 struct Label FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
