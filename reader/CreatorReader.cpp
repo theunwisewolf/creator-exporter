@@ -567,11 +567,6 @@ cocos2d::Node* Reader::createTree(const buffers::NodeTree* tree) const
 
 		if (spriteBuffer->spriteType() == buffers::SpriteType::SpriteType_Sliced)
 		{
-			if (spriteBuffer->node()->name()->str() == "world_collection")
-			{
-				CCLOG("Sprite loaded");
-			}
-
 			node = this->createScale9Sprite(spriteBuffer);
 		}
 		else if (spriteBuffer->spriteType() == buffers::SpriteType::SpriteType_Filled)
@@ -1068,7 +1063,36 @@ cocos2d::ui::Scale9Sprite* Reader::createScale9Sprite(const buffers::Sprite* spr
 	sprite->setRenderingType(cocos2d::ui::Scale9Sprite::RenderingType::SLICE);
 
 	if (sprite)
-		parseScale9Sprite(sprite, spriteBuffer);
+	{
+		this->parseScale9Sprite(sprite, spriteBuffer);
+
+		// Gradient support
+		if (spriteBuffer->gradient())
+		{
+			auto gradient = spriteBuffer->gradient();
+			auto startColor = cocos2d::Vec3(gradient->startColor()->r() / 255.0f, gradient->startColor()->g() / 255.0f, gradient->startColor()->b() / 255.0f);
+			auto endColor = cocos2d::Vec3(gradient->endColor()->r() / 255.0f, gradient->endColor()->g() / 255.0f, gradient->endColor()->b() / 255.0f);
+
+			auto properties = cocos2d::Properties::createNonRefCounted("materials/Effects2d.material#Effects2d");
+			cocos2d::Material* material = cocos2d::Material::createWithProperties(properties);
+
+			if (gradient->type() == 0)
+			{
+				sprite->setGLProgramState(material->getTechniqueByName("linear_gradient_horizontal")->getPassByIndex(0)->getGLProgramState());
+			}
+			else if (gradient->type() == 1)
+			{
+				sprite->setGLProgramState(material->getTechniqueByName("linear_gradient_vertical")->getPassByIndex(0)->getGLProgramState());
+			}
+			else
+			{
+				sprite->setGLProgramState(material->getTechniqueByName("radial_gradient")->getPassByIndex(0)->getGLProgramState());
+			}
+
+			sprite->getGLProgramState()->setUniformVec3("u_startColor", startColor);
+			sprite->getGLProgramState()->setUniformVec3("u_endColor", endColor);
+		}
+	}
 
 	return sprite;
 }
@@ -1180,7 +1204,34 @@ cocos2d::Sprite* Reader::createSprite(const buffers::Sprite* spriteBuffer) const
 	cocos2d::Sprite* sprite = cocos2d::Sprite::create();
 	if (sprite)
 	{
-		parseSprite(sprite, spriteBuffer);
+		this->parseSprite(sprite, spriteBuffer);
+
+		// Gradient support
+		if (spriteBuffer->gradient())
+		{
+			auto gradient = spriteBuffer->gradient();
+			auto startColor = cocos2d::Vec3(gradient->startColor()->r() / 255.0f, gradient->startColor()->g() / 255.0f, gradient->startColor()->b() / 255.0f);
+			auto endColor = cocos2d::Vec3(gradient->endColor()->r() / 255.0f, gradient->endColor()->g() / 255.0f, gradient->endColor()->b() / 255.0f);
+
+			auto properties = cocos2d::Properties::createNonRefCounted("materials/Effects2d.material#Effects2d");
+			cocos2d::Material* material = cocos2d::Material::createWithProperties(properties);
+
+			if (gradient->type() == 0)
+			{
+				sprite->setGLProgramState(material->getTechniqueByName("linear_gradient_horizontal")->getPassByIndex(0)->getGLProgramState());
+			}
+			else if (gradient->type() == 1)
+			{
+				sprite->setGLProgramState(material->getTechniqueByName("linear_gradient_vertical")->getPassByIndex(0)->getGLProgramState());
+			}
+			else
+			{
+				sprite->setGLProgramState(material->getTechniqueByName("radial_gradient")->getPassByIndex(0)->getGLProgramState());
+			}
+
+			sprite->getGLProgramState()->setUniformVec3("u_startColor", startColor);
+			sprite->getGLProgramState()->setUniformVec3("u_endColor", endColor);
+		}
 	}
 
 	return sprite;
@@ -1541,7 +1592,7 @@ void Reader::parseParticle(creator::ParticleSystem* particle, const buffers::Par
 	if (texturePath)
 	{
 		auto sf = cocos2d::SpriteFrameCache::getInstance()->getSpriteFrameByName(texturePath->c_str());
-		particle->setTexture(sf->getTexture());
+		particle->setDisplayFrame(sf);
 	}
 }
 
@@ -2089,6 +2140,17 @@ void Reader::parseMask(cocos2d::ClippingNode* mask, const buffers::Mask* maskBuf
 		const auto& spriteFrame = maskBuffer->spriteFrame();
 		auto stencil = cocos2d::Sprite::createWithSpriteFrameName(spriteFrame->c_str());
 		stencil->setContentSize(mask->getContentSize());
+
+		// Stencil align center
+		{
+			auto contentSize = mask->getContentSize();
+			auto anchor = mask->getAnchorPoint();
+
+			auto offset = cocos2d::Vec2(contentSize.width * anchor.x, contentSize.height * anchor.y);
+			auto position = stencil->getPosition() + offset;
+
+			stencil->setPosition(position);
+		}
 
 		mask->setStencil(stencil);
 		mask->setAlphaThreshold(alphaThreshold);

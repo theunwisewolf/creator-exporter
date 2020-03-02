@@ -1303,6 +1303,11 @@ LayoutItem& Layout::createLayoutItem()
 
 void Layout::setCreatePrefabCallback(std::function<cocos2d::Node*()>&& callback, std::size_t maxPrefabs)
 {
+	for (const auto& prefab: m_LayoutItemPrefabs)
+	{
+		prefab->removeFromParent();
+	}
+
 	m_LayoutItemPrefabs.clear();
 	this->removeAllChildren();
 
