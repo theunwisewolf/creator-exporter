@@ -1248,13 +1248,36 @@ void Reader::parseTrimmedSprite(cocos2d::Sprite* sprite) const
 	}
 }
 
+// For debugging a crash on crashlytics
+
 void Reader::parseSprite(cocos2d::Sprite* sprite, const buffers::Sprite* spriteBuffer) const
 {
 	// order is important:
 	// 1st: set sprite frame
 	const auto& frameName = spriteBuffer->spriteFrameName();
 	if (frameName)
+	{
+		auto cache = cocos2d::SpriteFrameCache::getInstance();
+		auto spriteFrame = cache->getSpriteFrameByName(frameName->str());
+
+		if (!spriteFrame)
+		{
+			struct Data{
+				char key[128];
+				char val[256];
+			};
+
+			Data* data = new Data;
+			std::string key = "missing_spriteframe";
+			std::string value = frameName->str();
+			std::copy(key.begin(), key.end(), data->key);
+			std::copy(value.begin(), value.end(), data->val);
+
+			cocos2d::Director::getInstance()->getEventDispatcher()->dispatchCustomEvent("creator_missing_spriteframe", reinterpret_cast<void*>(data));
+		}
+
 		sprite->setSpriteFrame(frameName->str());
+	}
 
 	// 2nd: node properties
 	const auto& nodeBuffer = spriteBuffer->node();
