@@ -50,6 +50,7 @@ struct LayoutItem
 	int Tag;
 	cocos2d::Vec2 Scale;
 	cocos2d::Vec2 Position;
+	cocos2d::Vec2 CreatorPosition;
 	cocos2d::Size ContentSize;
 	cocos2d::Vec2 AnchorPoint;
 };
@@ -80,10 +81,15 @@ private:
 	cocos2d::Vec2 originalPosition;
 
 	// For Recycling the Scrollview
-	bool m_RecycleElements = false;
 	creator::ScrollView* m_ScrollView = nullptr;
+
+	float m_ItemTolerableWidth = 0.0f;
+	float m_ItemTolerableHeight = 0.0f;
+	bool m_RecycleElements = false;
+
 	int m_StartIndex; // Index of the first child being drawn in the recycling scrollview
 	int m_EndIndex;	  // Index of the last child being drawn in the recycling scrollview
+
 	std::vector<cocos2d::Node*> m_LayoutItemPrefabs;
 	std::vector<LayoutItem> m_LayoutItems;
 	std::function<void(cocos2d::Node*, const LayoutItem&)> m_PrefabUpdateCallBack;
@@ -165,13 +171,20 @@ public:
 	void adjustPosition();
 
 	// For recycling
-	inline void setDoRecycle(bool value) { m_RecycleElements = value; }
+	inline void setDoRecycle(bool value) noexcept { m_RecycleElements = value; }
 	inline bool getDoRecycle() const noexcept { return m_RecycleElements; }
+
+	// Extra width and height that will be added when checking whether an item is in layout's view
+	inline void setLayoutItemTolerance(const cocos2d::Size& tolerance) noexcept
+	{
+		m_ItemTolerableWidth = tolerance.width;
+		m_ItemTolerableHeight = tolerance.height;
+	}
 
 	void initItems();
 	bool isItemInView(const LayoutItem& item);
-	LayoutItem& createLayoutItem(); // Creates a new LayoutItem with the provided "Data"
-	void setCreatePrefabCallback(std::function<cocos2d::Node*()>&& callback, std::size_t maxPrefabs);																// Called to create a prefab
+	LayoutItem& createLayoutItem();																												  // Creates a new LayoutItem with the provided "Data"
+	void setCreatePrefabCallback(std::function<cocos2d::Node*()>&& callback, std::size_t maxPrefabs);											  // Called to create a prefab
 	inline void setUpdatePrefabCallback(std::function<void(cocos2d::Node*, const LayoutItem&)>&& callback) { m_PrefabUpdateCallBack = callback; } // Called when updating a prefab
 };
 

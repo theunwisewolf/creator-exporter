@@ -192,30 +192,54 @@ void Layout::doLayout()
 	if (m_LayoutType == LayoutType::Horizontal)
 	{
 		float newWidth = this->getHorizontalBaseWidth(this->getChildren());
-		auto fnPositionY = [](cocos2d::Node* child, float, float) -> float {
-			// We have to make sure that we subtract the offset that was added by "shiftOrigin" so as to get the original position from Creator
-			//			auto parent = child->getParent();
-			//
-			//			const auto p_ap = parent->getAnchorPoint();
-			//			const auto p_cs = parent->getContentSize();
-			//
-			//			const auto offset = cocos2d::Vec2(p_ap.x * p_cs.width, p_ap.y * p_cs.height);
 
-			return child->getCreatorPosition().y; // - offset.y;
-		};
+		if (m_RecycleElements)
+		{
+			auto fnPositionY = [](const creator::LayoutItem& child, float, float) -> float {
+				return child.CreatorPosition.y;
+			};
 
-		this->doHorizontalLayout(newWidth, false, fnPositionY, true);
+			this->doHorizontalLayout(newWidth, false, fnPositionY, true);
+		}
+		else
+		{
+			auto fnPositionY = [](cocos2d::Node* child, float, float) -> float {
+				// We have to make sure that we subtract the offset that was added by "shiftOrigin" so as to get the original position from Creator
+				//			auto parent = child->getParent();
+				//
+				//			const auto p_ap = parent->getAnchorPoint();
+				//			const auto p_cs = parent->getContentSize();
+				//
+				//			const auto offset = cocos2d::Vec2(p_ap.x * p_cs.width, p_ap.y * p_cs.height);
+
+				return child->getCreatorPosition().y; // - offset.y;
+			};
+
+			this->doHorizontalLayout(newWidth, false, fnPositionY, true);
+		}
+
 		Node::setContentSize(cocos2d::Size(newWidth, this->getContentSize().height));
 	}
 	else if (m_LayoutType == LayoutType::Vertical)
 	{
 		float newHeight = this->getVerticalBaseHeight(this->getChildren());
+		if (m_RecycleElements)
+		{
+			auto fnPositionX = [](const creator::LayoutItem& child, float, float) -> float {
+				return child.CreatorPosition.x;
+			};
 
-		auto fnPositionX = [](cocos2d::Node* child, float, float) -> float {
-			return child->getCreatorPosition().x;
-		};
+			this->doVerticalLayout(newHeight, false, fnPositionX, true);
+		}
+		else
+		{
+			auto fnPositionX = [](cocos2d::Node* child, float, float) -> float {
+				return child->getCreatorPosition().x;
+			};
 
-		this->doVerticalLayout(newHeight, false, fnPositionX, true);
+			this->doVerticalLayout(newHeight, false, fnPositionX, true);
+		}
+
 		Node::setContentSize(cocos2d::Size(this->getContentSize().width, newHeight));
 	}
 	else if (m_LayoutType == LayoutType::None)
@@ -1303,7 +1327,7 @@ LayoutItem& Layout::createLayoutItem()
 
 void Layout::setCreatePrefabCallback(std::function<cocos2d::Node*()>&& callback, std::size_t maxPrefabs)
 {
-	for (const auto& prefab: m_LayoutItemPrefabs)
+	for (const auto& prefab : m_LayoutItemPrefabs)
 	{
 		prefab->removeFromParent();
 	}
@@ -1328,7 +1352,7 @@ bool Layout::isItemInView(const LayoutItem& node)
 
 		// float childScaleX = this->getUsedScaleValue(node->getScaleX());
 		float childScaleY = this->getUsedScaleValue(node.Scale.y);
-		float childHeight = node.ContentSize.height * childScaleY;
+		float childHeight = (node.ContentSize.height + m_ItemTolerableHeight) * childScaleY;
 
 		// Get the top edge of this child
 		float topEdge = (1.0f - node.AnchorPoint.y) * childHeight + node.Position.y;

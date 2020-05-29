@@ -78,10 +78,12 @@ void SpriteFrameCache::AddSpriteFrames(const void* buffer)
 					filepath = std::string("sprites/").append(Reader::i()->m_SpriteBasePath).append("/").append(filename);
 
 					std::string dirname = filepath.substr(0, filepath.find_last_of("/\\")).append("/");
-					auto it = Reader::i()->m_PathReplacements.find(dirname);
-					if (it != std::end(Reader::i()->m_PathReplacements))
+					for (const auto& path: Reader::i()->m_PathReplacements)
 					{
-						filepath.replace(0, dirname.length(), it->second);
+						if (dirname.rfind(path.first, 0) == 0)
+						{
+							filepath.replace(0, path.first.length(), path.second);
+						}
 					}
 
 					sf = cocos2d::SpriteFrame::create(filepath,
