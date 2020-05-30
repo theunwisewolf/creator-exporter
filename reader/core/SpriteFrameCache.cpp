@@ -60,9 +60,10 @@ void SpriteFrameCache::AddSpriteFrames(const void* buffer)
 
 				// Find the actual file name
 				std::string filename = filepath;
-				if (filename.find("creator/resources/sprites/") != std::string::npos)
+				const std::string creatorSpritePath = "creator/resources/sprites/";
+				if (filename.find(creatorSpritePath) != std::string::npos)
 				{
-					filename = filename.replace(filename.begin(), filename.begin() + std::string("creator/resources/sprites/").length(), "");
+					filename = filename.replace(filename.begin(), filename.begin() + creatorSpritePath.length(), "");
 				}
 
 				// If the file is inside the "split_qualities" folder, the file path will be prefixed with m_SpriteBasePath
@@ -114,12 +115,19 @@ void SpriteFrameCache::AddSpriteFrames(const void* buffer)
 					}
 
 					filepath = std::string("sprites/").append(filename);
-
 					std::string dirname = filepath.substr(0, filepath.find_last_of("/\\")).append("/");
-					auto it = Reader::i()->m_PathReplacements.find(dirname);
-					if (it != std::end(Reader::i()->m_PathReplacements))
+					for (const auto& path: Reader::i()->m_PathReplacements)
 					{
-						filepath.replace(0, dirname.length(), it->second);
+						if (dirname.rfind(path.first, 0) == 0)
+						{
+							filepath.replace(0, path.first.length(), path.second);
+						}
+					}
+					
+					if (!cocos2d::FileUtils::getInstance()->isFileExist(filepath))
+					{
+						// Fallback to creator path
+						filepath = creatorSpritePath + filename;
 					}
 
 					sf = cocos2d::SpriteFrame::create(filepath,
