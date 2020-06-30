@@ -443,12 +443,46 @@ cocos2d::Node* AnimateClip::getTarget(const std::string& path) const
 	if (path.empty())
 		return _rootTarget;
 
-	cocos2d::Node* ret = nullptr;
-	_rootTarget->enumerateChildren(path, [&ret](cocos2d::Node* result) -> bool {
-		ret = result;
-		return true;
-	});
-	return ret;
+	// Split the path
+	std::vector<std::string> tokens;
+	std::istringstream iss(path);
+    std::string token;
+	auto result = std::back_inserter(tokens);
+    while (std::getline(iss, token, '/')) {
+        *result++ = token;
+    }
+
+	cocos2d::Node* node = _rootTarget;
+	for (std::size_t i = 0; i < tokens.size(); ++i)
+	{
+		auto name = tokens[i];
+		node = node->getChildByName(name);
+
+		// If this node is of type scrollview
+		if (i < (tokens.size() - 1))
+		{
+			auto scrollview = dynamic_cast<cocos2d::ui::ScrollView*>(node);
+			if (scrollview)
+			{
+				node = scrollview->getInnerContainer();
+			}
+		}
+
+		if (!node)
+		{
+			CCLOG("Failed to find node: %s", name.c_str());
+			break;
+		}
+	}
+
+	return node;
+
+	// cocos2d::Node* ret = nullptr;
+	// _rootTarget->enumerateChildren(path, [&ret](cocos2d::Node* result) -> bool {
+	// 	ret = result;
+	// 	return true;
+	// });
+	// return ret;
 }
 
 float AnimateClip::computeElapse() const
