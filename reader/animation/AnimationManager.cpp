@@ -125,9 +125,10 @@ void AnimationManager::runAnimationClip(cocos2d::Node* target, AnimationClip* an
 			onEnd();
 		}
 
+		CCLOG("Removing animation clip %s from memory", animationClip->getName().c_str());
 		this->removeAnimateClip(target, animationClip->getName());
 		
-		animateClip->release();
+		//animateClip->release();
 		this->release();
 	});
 

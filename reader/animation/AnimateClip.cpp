@@ -213,6 +213,8 @@ void AnimateClip::stopAnimate()
 
 	if (_endCallback)
 		_endCallback();
+	
+	this->release();
 }
 
 void AnimateClip::pauseAnimate()
