@@ -4,6 +4,7 @@ const path = require('path');
 const Utils = require('../Utils');
 const Constants = require('../Constants');
 const Scene = require('./Scene');
+const { CCREATOR_PATH } = require('../Constants');
 const state = require('./Global').state;
 const get_sprite_frame_name_by_uuid = require('./Utils').get_sprite_frame_name_by_uuid;
 
@@ -45,10 +46,27 @@ class FireParser {
             // Do not parse texture packer atlas
             // NOTE: Handled internally (This is done to support multiple resolutions)
             // if (sprite_frame.is_texture_packer) continue;
+            
+            let name = get_sprite_frame_name_by_uuid(sprite_frame_uuid);
+
+            if (navigator.platform == "Win32") {
+                let regex = /(split\_qualities\\)|(no\_split\\)/;
+                name = name.replace(regex, "");
+                name = name.replace(/\\/, "/");
+            } else {
+                let regex = /(split\_qualities\/)|(no\_split\/)/;
+                name = name.replace(regex, "");
+            }
+
+            // Replaces the path separators on windows
+            let texturePath = state._assetpath + sprite_frame.texture_path;
+            if (navigator.platform == "Win32") {
+                texturePath = texturePath.replace(/\\/, "/");
+            }
 
             let frame = {
-                name: get_sprite_frame_name_by_uuid(sprite_frame_uuid).replace(/(split\_qualities\/)|(no_split\/)/, ""),
-                texturePath: state._assetpath + sprite_frame.texture_path,
+                name: name,
+                texturePath: texturePath,
                 rect: { x: sprite_frame.trimX, y: sprite_frame.trimY, w: sprite_frame.width, h: sprite_frame.height },
                 offset: { x: sprite_frame.offsetX, y: sprite_frame.offsetY },
                 rotated: sprite_frame.rotated,

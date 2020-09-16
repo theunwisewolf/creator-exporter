@@ -55,8 +55,15 @@ let get_sprite_frame_name_by_uuid = function(uuid) {
         let uuid_info = state._sprite_frames[uuid];
         if (uuid_info.is_texture_packer)
             return (uuid_info.name == "null" ? null : uuid_info.name);
-        else
+        else {
+            if (navigator.platform == "Win32") {
+                let name = (uuid_info.texture_path == "null" ? null : uuid_info.texture_path.replace("resources\\sprites\\", "sprites/").replace(/(split\_qualities\\)|(no_split\\)/, ""));
+                name = name.replace(/\\/, "/");
+                return name;
+            }
+
             return (uuid_info.texture_path == "null" ? null : uuid_info.texture_path.replace("resources/sprites/", "sprites/").replace(/(split\_qualities\/)|(no_split\/)/, ""));
+        }
     }
     else {
         let contents_json = get_sprite_frame_json_by_uuid(uuid);
@@ -96,6 +103,12 @@ let get_sprite_frame_name_by_uuid = function(uuid) {
                         found_sprite_frame_name = sprite_frame_info.texture_path;
                 }
             });
+
+            if (navigator.platform == "Win32") {
+                let name = (found_sprite_frame_name == "null" ? null : found_sprite_frame_name.replace("resources\\sprites\\", "sprites/").replace(/(split\_qualities\\)|(no_split\\)/, "")); 
+                name = name.replace(/\\/, "/");
+                return name;
+            }
 
             return (found_sprite_frame_name == "null" ? null : found_sprite_frame_name.replace("resources/sprites/", "sprites/").replace(/(split\_qualities\/)|(no_split\/)/, ""));
         }

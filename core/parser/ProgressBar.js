@@ -15,7 +15,7 @@ class ProgressBar extends Node {
 
         // background sprite
         let bg_component = Node.get_node_component_of_type(this._node_data, 'cc.Sprite');
-        if (bg_component._spriteFrame) {
+        if (bg_component && bg_component._spriteFrame) {
             let spriteFrame = Utils.get_sprite_frame_json_by_uuid(bg_component._spriteFrame.__uuid__);
 
             // Is part of an atlas
