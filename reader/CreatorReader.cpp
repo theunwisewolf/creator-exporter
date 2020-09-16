@@ -1274,6 +1274,7 @@ void Reader::parseSprite(cocos2d::Sprite* sprite, const buffers::Sprite* spriteB
 			std::copy(value.begin(), value.end(), data->val);
 
 			cocos2d::Director::getInstance()->getEventDispatcher()->dispatchCustomEvent("creator_missing_spriteframe", reinterpret_cast<void*>(data));
+			delete data;
 		}
 
 		sprite->setSpriteFrame(frameName->str());
@@ -1299,8 +1300,15 @@ void Reader::parseSprite(cocos2d::Sprite* sprite, const buffers::Sprite* spriteB
 	}
 
 	// Creator doesn't premultiply alpha, so its blend function can not work in cocos2d-x.
-	// const auto& srcBlend = spriteBuffer->srcBlend();
-	// const auto& dstBlend = spriteBuffer->dstBlend();
+	const auto& srcBlend = spriteBuffer->srcBlend();
+	const auto& dstBlend = spriteBuffer->dstBlend();
+
+	// Alpha premultiplied
+	if (srcBlend == GL_ONE && dstBlend == GL_ONE_MINUS_SRC_ALPHA)
+	{
+		sprite->setBlendFunc(BlendFunc::ALPHA_PREMULTIPLIED);
+	}
+
 	// cocos2d::BlendFunc blendFunc;
 	// blendFunc.src = srcBlend;
 	// blendFunc.dst = dstBlend;

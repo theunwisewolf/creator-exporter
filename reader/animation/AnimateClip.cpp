@@ -213,7 +213,7 @@ void AnimateClip::stopAnimate()
 
 	if (_endCallback)
 		_endCallback();
-	
+
 	this->release();
 }
 
@@ -344,7 +344,7 @@ void AnimateClip::doUpdate(const AnimProperties& animProperties, bool lastFrame)
 				cocos2d::Color4B color = label->getTextColor();
 				label->setTextColor({color.r, color.g, color.b, static_cast<GLubyte>(nextValue)});
 			}
-			
+
 			target->setOpacity(nextValue);
 		}
 
@@ -356,18 +356,30 @@ void AnimateClip::doUpdate(const AnimProperties& animProperties, bool lastFrame)
 		if (getNextValue(animProperties.animAnchorY, elapsed, nextValue))
 			target->setAnchorPoint(cocos2d::Vec2(target->getAnchorPoint().x, nextValue));
 
-		// position x
-		if (getNextValue(animProperties.animPositionX, elapsed, nextValue))
 		{
-			target->setPositionX(nextValue);
-			target->alignCenter();
-		}
+			float x, y;
+			bool animateX = getNextValue(animProperties.animPositionX, elapsed, x);
+			bool animateY = getNextValue(animProperties.animPositionY, elapsed, y);
 
-		// position y
-		if (getNextValue(animProperties.animPositionY, elapsed, nextValue))
-		{
-			target->setPositionY(nextValue);
-			target->alignCenter();
+			if (animateX && animateY)
+			{
+				target->setPosition(cocos2d::Vec2(x, y));
+				target->alignCenter();
+			}
+			else if (animateX)
+			{
+				target->setPositionX(x);
+				y = target->getPositionY();
+				target->alignCenter();
+				target->setPositionY(y);
+			}
+			else if (animateY)
+			{
+				target->setPositionY(y);
+				x = target->getPositionX();
+				target->alignCenter();
+				target->setPositionX(x);
+			}
 		}
 
 		// Active
@@ -448,11 +460,12 @@ cocos2d::Node* AnimateClip::getTarget(const std::string& path) const
 	// Split the path
 	std::vector<std::string> tokens;
 	std::istringstream iss(path);
-    std::string token;
+	std::string token;
 	auto result = std::back_inserter(tokens);
-    while (std::getline(iss, token, '/')) {
-        *result++ = token;
-    }
+	while (std::getline(iss, token, '/'))
+	{
+		*result++ = token;
+	}
 
 	cocos2d::Node* node = _rootTarget;
 	for (std::size_t i = 0; i < tokens.size(); ++i)
