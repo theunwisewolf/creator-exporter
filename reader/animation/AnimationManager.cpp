@@ -62,7 +62,7 @@ AnimationClip* AnimationManager::getAnimationClip(const std::string& animationCl
 		{
 			if (animClip->getName() == animationClipName)
 			{
-				return animClip;
+				return animClip->clone();
 			}
 		}
 	}
@@ -127,8 +127,7 @@ void AnimationManager::runAnimationClip(cocos2d::Node* target, AnimationClip* an
 
 		CCLOG("Removing animation clip %s from memory", animationClip->getName().c_str());
 		this->removeAnimateClip(target, animationClip->getName());
-		
-		//animateClip->release();
+	
 		this->release();
 	});
 

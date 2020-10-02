@@ -42,6 +42,26 @@ bool AnimationClip::init()
 	return true;
 }
 
+AnimationClip* AnimationClip::clone()
+{
+	auto animClip = AnimationClip::create();
+
+	animClip->setDuration(_duration);
+	animClip->setSpeed(_speed);
+	animClip->setSample(_sample);
+	animClip->setName(_name);
+	animClip->setWrapMode(_wrapMode);
+
+	for (const auto& properties: _animPropertiesVec)
+	{
+		animClip->addAnimProperties(properties);
+	}
+
+	// It will be released in the on end event
+	// animClip->retain();
+	return animClip;
+}
+
 AnimationClip::AnimationClip() :
 	_name(""), _speed(0), _sample(0), _duration(0), _wrapMode(WrapMode::Default)
 {

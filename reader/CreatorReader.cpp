@@ -1262,7 +1262,8 @@ void Reader::parseSprite(cocos2d::Sprite* sprite, const buffers::Sprite* spriteB
 
 		if (!spriteFrame)
 		{
-			struct Data{
+			struct Data
+			{
 				char key[128];
 				char val[256];
 			};
@@ -1296,6 +1297,7 @@ void Reader::parseSprite(cocos2d::Sprite* sprite, const buffers::Sprite* spriteB
 		break;
 	case buffers::SpriteType_Filled:
 	case buffers::SpriteType_Sliced:
+		sprite->setCenterRectNormalized(cocos2d::Rect(0, 0, 1, 1));
 		break;
 	}
 
