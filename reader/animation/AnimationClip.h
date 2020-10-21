@@ -23,12 +23,18 @@
  ****************************************************************************/
 #pragma once
 
+#include <string>
+#include <vector>
+#include <functional>
+
 #include "cocos2d.h"
 
 #include "../Macros.h"
 #include "AnimationClipProperties.h"
 
 NS_CCR_BEGIN
+
+using AnimationClipEndCallback = std::function<void()>;
 
 class AnimationClip : public cocos2d::Ref
 {
@@ -66,6 +72,9 @@ public:
 	void setWrapMode(WrapMode wrapMode);
 	WrapMode getWrapMode() const;
 
+	inline void setOnEndCallback(const AnimationClipEndCallback& onEnd) { _onEnd = onEnd; }
+	inline AnimationClipEndCallback getOnEndCallback() const { return _onEnd; }
+
 	void addAnimProperties(const AnimProperties& properties);
 	const std::vector<AnimProperties>& getAnimProperties() const;
 
@@ -78,6 +87,7 @@ private:
 	float _speed;
 	WrapMode _wrapMode;
 	std::vector<AnimProperties> _animPropertiesVec;
+	AnimationClipEndCallback _onEnd;
 };
 
 NS_CCR_END

@@ -49,8 +49,9 @@ public:
 	void playAnimationClip(cocos2d::Node* target, AnimationClip* clip, const std::function<void()>& onEnd = nullptr);
 	AnimationClip* getAnimationClip(const std::string& animationClipName);
 
-	// if AnimationClip is stopped, can not run it again.
-	void stopAnimationClip(cocos2d::Node* target, const std::string& animationClipName);
+	// Stopped animations cannot be run again
+	void stopAnimationClip(cocos2d::Node* target, AnimationClip* clip, bool callClipEndCallback = true);
+	void stopAnimationClip(cocos2d::Node* target, const std::string& animationClipName, bool callClipEndCallback = true);
 	void pauseAnimationClip(cocos2d::Node* target, const std::string& animationClipName);
 	void resumeAnimationClip(cocos2d::Node* target, const std::string& animationClipName);
 	AnimateClip* getAnimateClip(cocos2d::Node* target, const std::string& animationClipName);

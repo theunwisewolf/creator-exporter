@@ -11,15 +11,15 @@ AnimationManager::AnimationManager()
 
 AnimationManager::~AnimationManager()
 {
-// 	for (auto&& animationInfo : _animations)
-// 	{
-// //		animationInfo.target->release();
-// 	}
+	// 	for (auto&& animationInfo : _animations)
+	// 	{
+	// //		animationInfo.target->release();
+	// 	}
 }
 
 void AnimationManager::addAnimation(const AnimationInfo& animationInfo)
 {
-//	animationInfo.target->retain();
+	//	animationInfo.target->retain();
 	m_Animations.push_back(animationInfo);
 }
 
@@ -88,13 +88,35 @@ void AnimationManager::playAnimationClip(cocos2d::Node* target, AnimationClip* c
 	this->runAnimationClip(target, clip, onEnd);
 }
 
-void AnimationManager::stopAnimationClip(cocos2d::Node* target, const std::string& animationClipName)
+void AnimationManager::stopAnimationClip(cocos2d::Node* target, AnimationClip* clip, bool callClipEndCallback)
+{
+	for (auto&& e : m_CachedAnimates)
+	{
+		auto animator = std::get<2>(e);
+		if (std::get<0>(e) == target && animator->getClip() == clip)
+		{
+			if (!callClipEndCallback)
+			{
+				clip->setOnEndCallback(nullptr);
+			}
+
+			animator->stopAnimate();
+			break;
+		}
+	}
+}
+
+void AnimationManager::stopAnimationClip(cocos2d::Node* target, const std::string& animationClipName, bool callClipEndCallback)
 {
 	auto animateClip = getAnimateClip(target, animationClipName);
 	if (animateClip)
 	{
+		if (!callClipEndCallback)
+		{
+			animateClip->getClip()->setOnEndCallback(nullptr);
+		}
+
 		animateClip->stopAnimate();
-//		removeAnimateClip(target, animationClipName);
 	}
 }
 
@@ -114,20 +136,22 @@ void AnimationManager::resumeAnimationClip(cocos2d::Node* target, const std::str
 
 void AnimationManager::runAnimationClip(cocos2d::Node* target, AnimationClip* animationClip, const std::function<void()>& onEnd)
 {
+	animationClip->setOnEndCallback(onEnd);
 	auto animateClip = AnimateClip::createWithAnimationClip(target, animationClip);
 	animateClip->retain();
 	this->retain();
 
 	animateClip->setCallbackForEndevent([=]() {
 		// If there is an on end function supplied, run it
-		if (onEnd)
+		auto callback = animationClip->getOnEndCallback();
+		if (callback)
 		{
-			onEnd();
+			callback();
 		}
 
 		CCLOG("Removing animation clip %s from memory", animationClip->getName().c_str());
 		this->removeAnimateClip(target, animationClip->getName());
-	
+
 		this->release();
 	});
 
@@ -167,13 +191,13 @@ void AnimationManager::RemoveAllAnimations()
 void AnimationManager::RemoveSceneAnimations()
 {
 	decltype(m_Animations)::iterator it;
-	for (it = std::begin(m_Animations); it != std::end(m_Animations); ) 
+	for (it = std::begin(m_Animations); it != std::end(m_Animations);)
 	{
 		if (it->attachedToScene)
 		{
-			it = m_Animations.erase(it);    
+			it = m_Animations.erase(it);
 		}
-		else 
+		else
 		{
 			++it;
 		}
@@ -183,13 +207,13 @@ void AnimationManager::RemoveSceneAnimations()
 void AnimationManager::RemovePrefabAnimations()
 {
 	decltype(m_Animations)::iterator it;
-	for (it = std::begin(m_Animations) ; it != std::end(m_Animations); ) 
+	for (it = std::begin(m_Animations); it != std::end(m_Animations);)
 	{
 		if (!it->attachedToScene)
 		{
-			it = m_Animations.erase(it);    
+			it = m_Animations.erase(it);
 		}
-		else 
+		else
 		{
 			++it;
 		}

@@ -38,7 +38,7 @@ struct AnimProperties;
 
 class AnimateClip : public cocos2d::Node
 {
-	public:
+public:
 	typedef std::function<void()> AnimateEndCallback;
 
 	static AnimateClip* createWithAnimationClip(cocos2d::Node* rootTarget, AnimationClip* clip);
@@ -58,7 +58,7 @@ class AnimateClip : public cocos2d::Node
 	//
 	virtual void update(float dt) override;
 
-	private:
+private:
 	AnimateClip();
 	bool initWithAnimationClip(cocos2d::Node* rootTarget, AnimationClip* clip);
 	void doUpdate(const AnimProperties& animProperties, bool lastFrame = false) const;

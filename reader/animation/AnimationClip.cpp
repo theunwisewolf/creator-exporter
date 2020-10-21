@@ -34,6 +34,7 @@ AnimationClip* AnimationClip::create()
 		animClip->autorelease();
 		return animClip;
 	}
+
 	return nullptr;
 }
 
@@ -52,7 +53,7 @@ AnimationClip* AnimationClip::clone()
 	animClip->setName(_name);
 	animClip->setWrapMode(_wrapMode);
 
-	for (const auto& properties: _animPropertiesVec)
+	for (const auto& properties : _animPropertiesVec)
 	{
 		animClip->addAnimProperties(properties);
 	}
@@ -63,7 +64,12 @@ AnimationClip* AnimationClip::clone()
 }
 
 AnimationClip::AnimationClip() :
-	_name(""), _speed(0), _sample(0), _duration(0), _wrapMode(WrapMode::Default)
+	_name(""),
+	_speed(0),
+	_sample(0),
+	_duration(0),
+	_wrapMode(WrapMode::Default),
+	_onEnd(nullptr)
 {
 }
 
