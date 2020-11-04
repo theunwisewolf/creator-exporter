@@ -267,6 +267,19 @@ void AnimateClip::update(float dt)
 		_currentFramePlayed = true;
 	}
 
+	auto wrapMode = _clip->getWrapMode();
+	if (wrapMode == AnimationClip::WrapMode::Loop ||
+		wrapMode == AnimationClip::WrapMode::LoopReverse ||
+		wrapMode == AnimationClip::WrapMode::PingPong ||
+		wrapMode == AnimationClip::WrapMode::PingPongReverse)
+	{
+		_needStop = false;
+	}
+	else
+	{
+		_needStop = true;
+	}
+
 	if (_needStop && _elapsed >= _durationToStop)
 	{
 		_elapsed = _durationToStop;
